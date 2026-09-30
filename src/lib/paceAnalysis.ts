@@ -1,7 +1,7 @@
 // Pace analysis (beta): pure calculations over synced runs and per-mile splits.
 // Zone definitions and colors come from ./effort — no duplicates here.
 
-import { EFFORT_BANDS, effortFor, isRaceRun, runLengthLabel, type EffortKey } from "./effort";
+import { EFFORT_BANDS, effortFor, isRaceRun, type EffortKey } from "./effort";
 import { flagSplits, usableSplits, type FlaggedSplit, type SplitRow } from "./splitFlags";
 import { MARATHON_MI, mondayOfISO, shiftISODate } from "./training";
 
@@ -49,16 +49,6 @@ export function inRange(runs: AnalysisRun[], from: string, to: string): Analysis
 /* ---------- pace vs distance ---------- */
 
 export type PaceDistanceComparison = "previous" | "last-year" | "off";
-export type PaceDistancePoint = {
-  id: string;
-  date: string;
-  distance: number;
-  pace: number;
-  type: string;
-  race: boolean;
-  period: "current" | "comparison";
-  trendPace: number | null;
-};
 export type PaceDistanceFit = {
   intercept: number;
   slope: number;
@@ -70,16 +60,6 @@ export type PaceDistanceFit = {
   logDistanceSpread: number;
   standardError: number | null;
 };
-export type PaceDistanceTrendPoint = { distance: number; pace: number; band?: [number, number] };
-export type LikeForLikeRow = {
-  label: string;
-  currentPace: number | null;
-  currentCount: number;
-  comparisonPace: number | null;
-  comparisonCount: number;
-  difference: number | null;
-};
-
 const TEN_K_MI = 10000 / 1609.344;
 
 function shiftDate(date: string, days: number): string {
@@ -176,98 +156,6 @@ export function paceAtDistance(fit: PaceDistanceFit | null, distance: number): n
   return fit.intercept + fit.slope * Math.log(distance);
 }
 
-export function paceDistanceTrend(fit: PaceDistanceFit | null): PaceDistanceTrendPoint[] {
-  if (!fit) return [];
-  const points: PaceDistanceTrendPoint[] = [];
-  const steps = 28;
-  for (let i = 0; i <= steps; i++) {
-    const ratio = i / steps;
-    const distance = Math.exp(
-      Math.log(fit.minDistance) + ratio * (Math.log(fit.maxDistance) - Math.log(fit.minDistance)),
-    );
-    const pace = paceAtDistance(fit, distance) ?? 0;
-    const x = Math.log(distance);
-    const confidenceFactor =
-      fit.logDistanceSpread > 0
-        ? Math.sqrt(1 / fit.count + Math.pow(x - fit.logDistanceMean, 2) / fit.logDistanceSpread)
-        : Math.sqrt(1 / fit.count);
-    const margin = fit.standardError == null ? null : 1.96 * fit.standardError * confidenceFactor;
-    points.push({
-      distance,
-      pace,
-      ...(margin == null ? {} : { band: [pace - margin, pace + margin] as [number, number] }),
-    });
-  }
-  return points;
-}
-
-export function paceDistancePoints(
-  runs: AnalysisRun[],
-  normalized: boolean,
-  period: "current" | "comparison",
-  fit: PaceDistanceFit | null,
-): PaceDistancePoint[] {
-  return runs.flatMap((run) => {
-    const pace = runPace(run, normalized);
-    const distance = Number(run.distance_mi);
-    if (pace == null || !(distance > 0)) return [];
-    return [
-      {
-        id: run.id ?? `${run.date}-${distance}`,
-        date: run.date,
-        distance,
-        pace,
-        type: run.type,
-        race: isRaceRun(run),
-        period,
-        trendPace:
-          fit && distance >= fit.minDistance && distance <= fit.maxDistance
-            ? paceAtDistance(fit, distance)
-            : null,
-      },
-    ];
-  });
-}
-
-const DISTANCE_BUCKETS = [
-  { label: "<4 mi", min: 0, max: 4 },
-  { label: "4–6 mi", min: 4, max: 6 },
-  { label: "6–8 mi", min: 6, max: 8 },
-  { label: "8–12 mi", min: 8, max: 12 },
-  { label: "12+ mi", min: 12, max: Number.POSITIVE_INFINITY },
-];
-
-export function likeForLike(current: AnalysisRun[], comparison: AnalysisRun[]): LikeForLikeRow[] {
-  const cell = (source: AnalysisRun[], min: number, max: number) => {
-    const selected = source.filter(
-      (run) =>
-        !isRaceRun(run) &&
-        run.distance_mi >= min &&
-        run.distance_mi < max &&
-        run.distance_mi > 0 &&
-        run.duration_seconds > 0,
-    );
-    const miles = selected.reduce((sum, run) => sum + Number(run.distance_mi), 0);
-    const seconds = selected.reduce((sum, run) => sum + Number(run.duration_seconds), 0);
-    return { count: selected.length, pace: miles > 0 ? seconds / miles : null };
-  };
-  return DISTANCE_BUCKETS.flatMap((bucket) => {
-    const a = cell(current, bucket.min, bucket.max);
-    const b = cell(comparison, bucket.min, bucket.max);
-    if (!a.count && !b.count) return [];
-    return [
-      {
-        label: bucket.label,
-        currentPace: a.pace,
-        currentCount: a.count,
-        comparisonPace: b.pace,
-        comparisonCount: b.count,
-        difference: a.pace != null && b.pace != null ? Math.round(a.pace - b.pace) : null,
-      },
-    ];
-  });
-}
-
 /* ---------- summary ---------- */
 
 export type PaceSummary = {
@@ -293,84 +181,8 @@ export function paceSummary(runs: AnalysisRun[], splitMiles: SplitMile[]): PaceS
 
 /* ---------- pace trend ---------- */
 
-export type TrendType = "Short" | "Medium" | "Long" | "All runs";
-
-export const TREND_TYPES: TrendType[] = ["Short", "Medium", "Long", "All runs"];
-
-export const TREND_COLORS: Record<TrendType, string> = {
-  Short: "var(--chart-4)",
-  Medium: "var(--chart-1)",
-  Long: "var(--chart-2)",
-  "All runs": "var(--muted-foreground)",
-};
-
-function typeOf(run: AnalysisRun): TrendType {
-  const label = runLengthLabel(run.distance_mi);
-  return label === "Long run" ? "Long" : label === "Medium run" ? "Medium" : "Short";
-}
-
 function mondayOf(date: string): string {
   return mondayOfISO(date);
-}
-
-export type TrendPoint = {
-  period: string;
-  label: string;
-  values: Partial<Record<TrendType, { pace: number; runs: number; miles: number }>>;
-};
-
-/** One point per week (4w / 3m) or per month (12m); races excluded. */
-export function paceTrend(
-  runs: AnalysisRun[],
-  range: RangeKey,
-  types: TrendType[],
-  from?: string,
-  to?: string,
-): TrendPoint[] {
-  const monthly = range === "12m";
-  const usable = runs.filter(
-    (r) => !isRaceRun(r) && Number(r.distance_mi) > 0 && Number(r.duration_seconds) > 0,
-  );
-  const buckets = new Map<
-    string,
-    Map<TrendType, { seconds: number; miles: number; runs: number }>
-  >();
-
-  for (const run of usable) {
-    const period = monthly ? run.date.slice(0, 7) : mondayOf(run.date);
-    const runTypes: TrendType[] = [typeOf(run), "All runs"];
-    for (const t of runTypes) {
-      if (!types.includes(t)) continue;
-      const byType = buckets.get(period) ?? new Map();
-      const cell = byType.get(t) ?? { seconds: 0, miles: 0, runs: 0 };
-      cell.seconds += Number(run.duration_seconds);
-      cell.miles += Number(run.distance_mi);
-      cell.runs += 1;
-      byType.set(t, cell);
-      buckets.set(period, byType);
-    }
-  }
-
-  const periods =
-    from && to
-      ? periodsBetween(from, to, monthly)
-      : [...buckets.keys()].sort((a, b) => a.localeCompare(b));
-
-  return periods.map((period) => {
-    const byType =
-      buckets.get(period) ?? new Map<TrendType, { seconds: number; miles: number; runs: number }>();
-    const values: TrendPoint["values"] = {};
-    for (const [t, cell] of byType) {
-      if (cell.miles > 0) {
-        values[t] = {
-          pace: Math.round(cell.seconds / cell.miles),
-          runs: cell.runs,
-          miles: Math.round(cell.miles * 10) / 10,
-        };
-      }
-    }
-    return { period, label: periodLabel(period, monthly), values };
-  });
 }
 
 /** Every week (Monday) or month between two dates, so the axis stays continuous. */
@@ -388,6 +200,37 @@ export function periodsBetween(from: string, to: string, monthly: boolean): stri
   const end = mondayOf(to);
   for (let week = mondayOf(from); week <= end; week = shiftISODate(week, 7)) out.push(week);
   return out;
+}
+
+export type WeekVolume = {
+  week: string;
+  label: string;
+  miles: number;
+  longest: number;
+  /** Distance-weighted average moving pace for the week, or null with no timed runs. */
+  pace: number | null;
+  runs: number;
+};
+
+/** Miles, longest run and average pace for every week (Monday) from `from` to `to`. */
+export function weeklyVolume(runs: AnalysisRun[], from: string, to: string): WeekVolume[] {
+  return periodsBetween(from, to, false).map((week) => {
+    const end = shiftISODate(week, 6);
+    const inWeek = runs.filter((r) => r.date >= week && r.date <= end && r.date <= to);
+    const miles = inWeek.reduce((s, r) => s + Number(r.distance_mi || 0), 0);
+    const timed = inWeek.filter((r) => Number(r.distance_mi) > 0 && Number(r.duration_seconds) > 0);
+    const timedMiles = timed.reduce((s, r) => s + Number(r.distance_mi), 0);
+    const timedSeconds = timed.reduce((s, r) => s + Number(r.duration_seconds), 0);
+    return {
+      week,
+      label: periodLabel(week, false),
+      miles: Math.round(miles * 10) / 10,
+      longest:
+        Math.round(inWeek.reduce((m, r) => Math.max(m, Number(r.distance_mi || 0)), 0) * 10) / 10,
+      pace: timedMiles > 0 ? Math.round(timedSeconds / timedMiles) : null,
+      runs: inWeek.length,
+    };
+  });
 }
 
 function periodLabel(period: string, monthly: boolean): string {
@@ -421,37 +264,6 @@ export function splitMiles(runs: AnalysisRun[], splitsByActivity: SplitsByActivi
     }
   }
   return { miles: out, excluded: tooFast + tooSlow, tooFast, tooSlow };
-}
-
-export type Bucket = { pace: number; label: string; miles: number; color: string; zone: EffortKey };
-
-function bucketLabel(pace: number): string {
-  return `${Math.floor(pace / 60)}:${String(pace % 60).padStart(2, "0")}`;
-}
-
-/** Miles per 15-second pace bucket; every bucket between fastest and slowest is present. */
-export function paceDistribution(miles: SplitMile[]): Bucket[] {
-  if (miles.length === 0) return [];
-  const counts = new Map<number, number>();
-  for (const m of miles) {
-    const bucket = Math.floor(m.pace / 15) * 15;
-    counts.set(bucket, (counts.get(bucket) ?? 0) + 1);
-  }
-  const keys = [...counts.keys()];
-  const first = Math.min(...keys);
-  const last = Math.max(...keys);
-  const out: Bucket[] = [];
-  for (let pace = first; pace <= last; pace += 15) {
-    const zone = effortFor(pace) ?? "Hard";
-    out.push({
-      pace,
-      label: bucketLabel(pace),
-      miles: counts.get(pace) ?? 0,
-      zone,
-      color: EFFORT_BANDS.find((b) => b.key === zone)?.color ?? "var(--chart-1)",
-    });
-  }
-  return out;
 }
 
 export type ZoneSlice = { zone: EffortKey; miles: number; pct: number; color: string };

@@ -3,6 +3,7 @@ import {
   enduranceFactor,
   predictFromTraining,
   volumeFactor,
+  weeklyVolume,
   type AnalysisRun,
   type BestEffortRow,
 } from "./paceAnalysis";
@@ -35,6 +36,30 @@ const efforts: BestEffortRow[] = [
   { strava_activity_id: 14, name: "10k", distance_m: 10000, seconds: 3260 },
   { strava_activity_id: 29, name: "10k", distance_m: 10000, seconds: 3338 },
 ];
+
+describe("weekly miles and pace", () => {
+  const weeks = weeklyVolume(september, "2026-09-07", "2026-09-30");
+
+  it("has one row per Monday, including weeks with no running", () => {
+    expect(weeks.map((w) => w.week)).toEqual([
+      "2026-09-07",
+      "2026-09-14",
+      "2026-09-21",
+      "2026-09-28",
+    ]);
+    expect(weeklyVolume([], "2026-09-07", "2026-09-20").map((w) => w.miles)).toEqual([0, 0]);
+  });
+
+  it("totals miles, longest run and distance-weighted pace", () => {
+    expect(weeks.map((w) => [w.miles, w.longest, w.runs])).toEqual([
+      [16.9, 11.7, 3],
+      [36.7, 15.9, 4],
+      [3.5, 3.5, 1],
+      [17.1, 17.1, 1],
+    ]);
+    expect(weeks.every((w) => w.pace === 560)).toBe(true); // every fixture run is 9:20/mi
+  });
+});
 
 describe("endurance and volume adjustments", () => {
   it("shrink smoothly between their end points", () => {

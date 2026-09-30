@@ -101,8 +101,7 @@ function SettingsForm({ d }: { d: Dashboard }) {
         days_per_week: daysPerWeek === "" ? null : Number(daysPerWeek),
         long_run_day: longDay,
       });
-      const changed =
-        targetSeconds && targetSeconds !== (d.activeTarget?.target_seconds ?? null);
+      const changed = targetSeconds && targetSeconds !== (d.activeTarget?.target_seconds ?? null);
       if (changed) {
         await setTarget.mutateAsync({
           target_seconds: targetSeconds,
@@ -122,14 +121,23 @@ function SettingsForm({ d }: { d: Dashboard }) {
   }
 
   return (
-    <form id="profile-settings" className="scroll-mt-6 grid gap-4 sm:grid-cols-2" onSubmit={saveAll}>
+    <form
+      id="profile-settings"
+      className="scroll-mt-6 grid gap-4 sm:grid-cols-2"
+      onSubmit={saveAll}
+    >
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="raceName">Race name</Label>
         <Input id="raceName" value={raceName} onChange={(e) => setRaceName(e.target.value)} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="raceDate">Race date</Label>
-        <Input id="raceDate" type="date" value={raceDate} onChange={(e) => setRaceDate(e.target.value)} />
+        <Input
+          id="raceDate"
+          type="date"
+          value={raceDate}
+          onChange={(e) => setRaceDate(e.target.value)}
+        />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="sdist">Recent race</Label>
@@ -152,7 +160,12 @@ function SettingsForm({ d }: { d: Dashboard }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="sracedate">Recent race date</Label>
-        <Input id="sracedate" type="date" value={recentRaceDate} onChange={(e) => setRecentRaceDate(e.target.value)} />
+        <Input
+          id="sracedate"
+          type="date"
+          value={recentRaceDate}
+          onChange={(e) => setRecentRaceDate(e.target.value)}
+        />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="smileage">Starting weekly mileage (used until runs are logged)</Label>

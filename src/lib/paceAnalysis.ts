@@ -19,7 +19,10 @@ export type AnalysisRun = {
 export type SplitsByActivity = Map<number, SplitRow[]>;
 
 /** Every split of a run, with its distance, moving pace and any flag. */
-export function runFlaggedSplits(run: AnalysisRun, splitsByActivity: SplitsByActivity): FlaggedSplit[] {
+export function runFlaggedSplits(
+  run: AnalysisRun,
+  splitsByActivity: SplitsByActivity,
+): FlaggedSplit[] {
   if (!run.strava_activity_id) return [];
   const rows = splitsByActivity.get(Number(run.strava_activity_id));
   if (!rows?.length) return [];
@@ -113,11 +116,18 @@ export function comparisonWindow(
     comparisonFrom = shiftYear(from, -1);
     comparisonTo = shiftYear(to, -1);
   } else {
-    const days = Math.round((new Date(`${to}T00:00:00`).getTime() - new Date(`${from}T00:00:00`).getTime()) / 86400000) + 1;
+    const days =
+      Math.round(
+        (new Date(`${to}T00:00:00`).getTime() - new Date(`${from}T00:00:00`).getTime()) / 86400000,
+      ) + 1;
     comparisonTo = shiftDate(from, -1);
     comparisonFrom = shiftDate(comparisonTo, -(days - 1));
   }
-  return { from: comparisonFrom, to: comparisonTo, label: periodRangeLabel(comparisonFrom, comparisonTo) };
+  return {
+    from: comparisonFrom,
+    to: comparisonTo,
+    label: periodRangeLabel(comparisonFrom, comparisonTo),
+  };
 }
 
 function runPace(run: AnalysisRun, normalized: boolean): number | null {
@@ -132,15 +142,28 @@ function runPace(run: AnalysisRun, normalized: boolean): number | null {
 export function fitPaceDistance(runs: AnalysisRun[], normalized: boolean): PaceDistanceFit | null {
   const points = runs
     .filter((run) => !isRaceRun(run))
-    .map((run) => ({ x: Math.log(Number(run.distance_mi)), distance: Number(run.distance_mi), y: runPace(run, normalized) }))
-    .filter((point): point is { x: number; distance: number; y: number } => Number.isFinite(point.x) && point.y != null && Number.isFinite(point.y));
+    .map((run) => ({
+      x: Math.log(Number(run.distance_mi)),
+      distance: Number(run.distance_mi),
+      y: runPace(run, normalized),
+    }))
+    .filter(
+      (point): point is { x: number; distance: number; y: number } =>
+        Number.isFinite(point.x) && point.y != null && Number.isFinite(point.y),
+    );
   if (points.length < 5) return null;
   const xMean = points.reduce((sum, point) => sum + point.x, 0) / points.length;
   const yMean = points.reduce((sum, point) => sum + point.y, 0) / points.length;
   const sxx = points.reduce((sum, point) => sum + Math.pow(point.x - xMean, 2), 0);
-  const slope = sxx > 0 ? points.reduce((sum, point) => sum + (point.x - xMean) * (point.y - yMean), 0) / sxx : 0;
+  const slope =
+    sxx > 0
+      ? points.reduce((sum, point) => sum + (point.x - xMean) * (point.y - yMean), 0) / sxx
+      : 0;
   const intercept = yMean - slope * xMean;
-  const residual = points.reduce((sum, point) => sum + Math.pow(point.y - (intercept + slope * point.x), 2), 0);
+  const residual = points.reduce(
+    (sum, point) => sum + Math.pow(point.y - (intercept + slope * point.x), 2),
+    0,
+  );
   return {
     intercept,
     slope,
@@ -165,14 +188,21 @@ export function paceDistanceTrend(fit: PaceDistanceFit | null): PaceDistanceTren
   const steps = 28;
   for (let i = 0; i <= steps; i++) {
     const ratio = i / steps;
-    const distance = Math.exp(Math.log(fit.minDistance) + ratio * (Math.log(fit.maxDistance) - Math.log(fit.minDistance)));
+    const distance = Math.exp(
+      Math.log(fit.minDistance) + ratio * (Math.log(fit.maxDistance) - Math.log(fit.minDistance)),
+    );
     const pace = paceAtDistance(fit, distance) ?? 0;
     const x = Math.log(distance);
-    const confidenceFactor = fit.logDistanceSpread > 0
-      ? Math.sqrt(1 / fit.count + Math.pow(x - fit.logDistanceMean, 2) / fit.logDistanceSpread)
-      : Math.sqrt(1 / fit.count);
+    const confidenceFactor =
+      fit.logDistanceSpread > 0
+        ? Math.sqrt(1 / fit.count + Math.pow(x - fit.logDistanceMean, 2) / fit.logDistanceSpread)
+        : Math.sqrt(1 / fit.count);
     const margin = fit.standardError == null ? null : 1.96 * fit.standardError * confidenceFactor;
-    points.push({ distance, pace, ...(margin == null ? {} : { band: [pace - margin, pace + margin] as [number, number] }) });
+    points.push({
+      distance,
+      pace,
+      ...(margin == null ? {} : { band: [pace - margin, pace + margin] as [number, number] }),
+    });
   }
   return points;
 }
@@ -187,16 +217,21 @@ export function paceDistancePoints(
     const pace = runPace(run, normalized);
     const distance = Number(run.distance_mi);
     if (pace == null || !(distance > 0)) return [];
-    return [{
-      id: run.id ?? `${run.date}-${distance}`,
-      date: run.date,
-      distance,
-      pace,
-      type: run.type,
-      race: isRaceRun(run),
-      period,
-      trendPace: fit && distance >= fit.minDistance && distance <= fit.maxDistance ? paceAtDistance(fit, distance) : null,
-    }];
+    return [
+      {
+        id: run.id ?? `${run.date}-${distance}`,
+        date: run.date,
+        distance,
+        pace,
+        type: run.type,
+        race: isRaceRun(run),
+        period,
+        trendPace:
+          fit && distance >= fit.minDistance && distance <= fit.maxDistance
+            ? paceAtDistance(fit, distance)
+            : null,
+      },
+    ];
   });
 }
 
@@ -210,7 +245,14 @@ const DISTANCE_BUCKETS = [
 
 export function likeForLike(current: AnalysisRun[], comparison: AnalysisRun[]): LikeForLikeRow[] {
   const cell = (source: AnalysisRun[], min: number, max: number) => {
-    const selected = source.filter((run) => !isRaceRun(run) && run.distance_mi >= min && run.distance_mi < max && run.distance_mi > 0 && run.duration_seconds > 0);
+    const selected = source.filter(
+      (run) =>
+        !isRaceRun(run) &&
+        run.distance_mi >= min &&
+        run.distance_mi < max &&
+        run.distance_mi > 0 &&
+        run.duration_seconds > 0,
+    );
     const miles = selected.reduce((sum, run) => sum + Number(run.distance_mi), 0);
     const seconds = selected.reduce((sum, run) => sum + Number(run.duration_seconds), 0);
     return { count: selected.length, pace: miles > 0 ? seconds / miles : null };
@@ -219,14 +261,16 @@ export function likeForLike(current: AnalysisRun[], comparison: AnalysisRun[]): 
     const a = cell(current, bucket.min, bucket.max);
     const b = cell(comparison, bucket.min, bucket.max);
     if (!a.count && !b.count) return [];
-    return [{
-      label: bucket.label,
-      currentPace: a.pace,
-      currentCount: a.count,
-      comparisonPace: b.pace,
-      comparisonCount: b.count,
-      difference: a.pace != null && b.pace != null ? Math.round(a.pace - b.pace) : null,
-    }];
+    return [
+      {
+        label: bucket.label,
+        currentPace: a.pace,
+        currentCount: a.count,
+        comparisonPace: b.pace,
+        comparisonCount: b.count,
+        difference: a.pace != null && b.pace != null ? Math.round(a.pace - b.pace) : null,
+      },
+    ];
   });
 }
 
@@ -293,8 +337,13 @@ export function paceTrend(
   to?: string,
 ): TrendPoint[] {
   const monthly = range === "12m";
-  const usable = runs.filter((r) => !isRaceRun(r) && Number(r.distance_mi) > 0 && Number(r.duration_seconds) > 0);
-  const buckets = new Map<string, Map<TrendType, { seconds: number; miles: number; runs: number }>>();
+  const usable = runs.filter(
+    (r) => !isRaceRun(r) && Number(r.distance_mi) > 0 && Number(r.duration_seconds) > 0,
+  );
+  const buckets = new Map<
+    string,
+    Map<TrendType, { seconds: number; miles: number; runs: number }>
+  >();
 
   for (const run of usable) {
     const period = monthly ? run.date.slice(0, 7) : mondayOf(run.date);
@@ -312,24 +361,25 @@ export function paceTrend(
   }
 
   const periods =
-    from && to ? periodsBetween(from, to, monthly) : [...buckets.keys()].sort((a, b) => a.localeCompare(b));
+    from && to
+      ? periodsBetween(from, to, monthly)
+      : [...buckets.keys()].sort((a, b) => a.localeCompare(b));
 
-  return periods
-    .map((period) => {
-      const byType =
-        buckets.get(period) ?? new Map<TrendType, { seconds: number; miles: number; runs: number }>();
-      const values: TrendPoint["values"] = {};
-      for (const [t, cell] of byType) {
-        if (cell.miles > 0) {
-          values[t] = {
-            pace: Math.round(cell.seconds / cell.miles),
-            runs: cell.runs,
-            miles: Math.round(cell.miles * 10) / 10,
-          };
-        }
+  return periods.map((period) => {
+    const byType =
+      buckets.get(period) ?? new Map<TrendType, { seconds: number; miles: number; runs: number }>();
+    const values: TrendPoint["values"] = {};
+    for (const [t, cell] of byType) {
+      if (cell.miles > 0) {
+        values[t] = {
+          pace: Math.round(cell.seconds / cell.miles),
+          runs: cell.runs,
+          miles: Math.round(cell.miles * 10) / 10,
+        };
       }
-      return { period, label: periodLabel(period, monthly), values };
-    });
+    }
+    return { period, label: periodLabel(period, monthly), values };
+  });
 }
 
 /** Every week (Monday) or month between two dates, so the axis stays continuous. */
@@ -421,7 +471,6 @@ export function paceDistribution(miles: SplitMile[]): Bucket[] {
   }
   return out;
 }
-
 
 export type ZoneSlice = { zone: EffortKey; miles: number; pct: number; color: string };
 
@@ -629,7 +678,10 @@ function paceText(seconds: number): string {
 }
 
 function dayLabel(date: string): string {
-  return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 const EFFORT_NAMES = ["mile", "5K", "10K"];
@@ -675,7 +727,8 @@ export function keyTakeaway(ctx: KeyTakeawayContext): string | null {
   // 5) the longest run of the whole cycle happened in this range
   const longest = ctx.longestInRangeRun;
   if (longest && ctx.longestAllMi > 0 && ctx.summary.longestMi >= ctx.longestAllMi - 0.05) {
-    const pace = longest.avg_pace_seconds ?? Number(longest.duration_seconds) / Number(longest.distance_mi);
+    const pace =
+      longest.avg_pace_seconds ?? Number(longest.duration_seconds) / Number(longest.distance_mi);
     return `Longest run of the cycle: ${ctx.summary.longestMi.toFixed(1)} mi on ${dayLabel(longest.date)} at ${paceText(pace)}/mi.`;
   }
 
@@ -727,14 +780,20 @@ function halves(segs: Segment[]): { first: number | null; second: number | null 
 }
 
 /** Long runs (10+ mi, races excluded) with first/second-half pace split at half the distance. */
-export function longRunCheck(runs: AnalysisRun[], splitsByActivity: SplitsByActivity): LongRunRow[] {
+export function longRunCheck(
+  runs: AnalysisRun[],
+  splitsByActivity: SplitsByActivity,
+): LongRunRow[] {
   return runs
     .filter((r) => !isRaceRun(r) && Number(r.distance_mi) >= 10)
     .sort((a, b) => b.date.localeCompare(a.date))
     .map((run) => {
       const splits = runFlaggedSplits(run, splitsByActivity);
       const all: Segment[] = splits.map((s) => ({ dist: s.distance, pace: s.pace }));
-      const clean: Segment[] = usableSplits(splits).map((s) => ({ dist: s.distance, pace: s.pace }));
+      const clean: Segment[] = usableSplits(splits).map((s) => ({
+        dist: s.distance,
+        pace: s.pace,
+      }));
       const excluded = splits.filter((s) => s.flag).length;
 
       const cleanHalves = halves(clean.length ? clean : all);
@@ -759,7 +818,16 @@ export function longRunCheck(runs: AnalysisRun[], splitsByActivity: SplitsByActi
         diff,
         slowestMile: fullMiles.length ? Math.round(Math.max(...fullMiles)) : null,
         excluded,
-        verdict: diff == null ? null : diff < 0 ? "negative" : diff <= 10 ? "even" : diff > 20 ? "faded" : null,
+        verdict:
+          diff == null
+            ? null
+            : diff < 0
+              ? "negative"
+              : diff <= 10
+                ? "even"
+                : diff > 20
+                  ? "faded"
+                  : null,
       };
     });
 }

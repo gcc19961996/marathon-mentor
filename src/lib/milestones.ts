@@ -9,9 +9,11 @@ export const MILESTONE_TOLERANCE_MI = 0.2;
 export function distanceMilestoneRun(m: Milestone, d: Dashboard) {
   const miles = milestoneDistance(m);
   if (!miles || miles < 8) return null;
-  return [...d.runs]
-    .filter((r) => Number(r.distance_mi) >= miles - MILESTONE_TOLERANCE_MI)
-    .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null;
+  return (
+    [...d.runs]
+      .filter((r) => Number(r.distance_mi) >= miles - MILESTONE_TOLERANCE_MI)
+      .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null
+  );
 }
 
 /** Date a milestone becomes complete, or null. */

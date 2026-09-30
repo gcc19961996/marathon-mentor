@@ -38,7 +38,9 @@ export function StravaCard() {
     } else if (res.status === "not-connected") {
       toast.error("Strava is not connected");
     } else {
-      toast.error(res.message ? `Strava sync failed — ${res.message}` : "Strava sync failed — reconnect");
+      toast.error(
+        res.message ? `Strava sync failed — ${res.message}` : "Strava sync failed — reconnect",
+      );
     }
   }
 
@@ -75,9 +77,9 @@ export function StravaCard() {
         ) : !s.configured ? (
           <form className="mt-3 space-y-3" onSubmit={saveAndConnect}>
             <p className="text-sm text-muted-foreground">
-              Paste the Client ID and Client Secret from your Strava API settings page once.
-              They are stored on the server only. Set the app&apos;s Authorization Callback
-              Domain to <span className="font-medium">{s.callbackDomain}</span>.
+              Paste the Client ID and Client Secret from your Strava API settings page once. They
+              are stored on the server only. Set the app&apos;s Authorization Callback Domain to{" "}
+              <span className="font-medium">{s.callbackDomain}</span>.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -134,10 +136,17 @@ export function StravaCard() {
               Connected{s.athleteName ? ` as ${s.athleteName}` : ""} · last synced{" "}
               {relativeTime(s.lastSyncedAt)} · {s.runCount} runs
             </p>
-             <p className="mt-1 text-sm font-medium tnum">Splits: {s.splitsCount}/{s.runCount} runs</p>
+            <p className="mt-1 text-sm font-medium tnum">
+              Splits: {s.splitsCount}/{s.runCount} runs
+            </p>
             {s.lastError && <p className="mt-1 text-sm text-destructive">{s.lastError}</p>}
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button variant="secondary" className="h-9 rounded-md" onClick={syncNow} disabled={sync.isPending}>
+              <Button
+                variant="secondary"
+                className="h-9 rounded-md"
+                onClick={syncNow}
+                disabled={sync.isPending}
+              >
                 {sync.isPending ? "Syncing…" : "Sync now"}
               </Button>
               <Button variant="secondary" onClick={() => connect.mutate()}>

@@ -20,16 +20,15 @@ export const getStravaStatus = createServerFn({ method: "GET" }).handler(
     const conn = await getConnection();
     const configured = Boolean(
       (process.env["STRAVA_CLIENT_ID"] && process.env["STRAVA_CLIENT_SECRET"]) ||
-        (conn?.client_id && conn?.client_secret),
+      (conn?.client_id && conn?.client_secret),
     );
     const { count } = await supabaseAdmin
       .from("runs")
       .select("id", { count: "exact", head: true })
       .not("strava_activity_id", "is", null);
-    const { data: splitRows } = await supabaseAdmin
-      .from("run_splits")
-      .select("strava_activity_id");
-    const splitsCount = new Set((splitRows ?? []).map((row) => Number(row.strava_activity_id))).size;
+    const { data: splitRows } = await supabaseAdmin.from("run_splits").select("strava_activity_id");
+    const splitsCount = new Set((splitRows ?? []).map((row) => Number(row.strava_activity_id)))
+      .size;
     return {
       configured,
       connected: Boolean(conn?.refresh_token),
@@ -130,7 +129,7 @@ export const saveStravaConnectError = createServerFn({ method: "POST" })
 
 export const runStravaSync = createServerFn({ method: "POST" }).handler(async () => {
   (await import("./gate.server")).requireOwner();
-    const { syncStrava, getConnection } = await import("./strava.server");
+  const { syncStrava, getConnection } = await import("./strava.server");
   const conn = await getConnection();
   const last = conn?.last_synced_at ? Date.parse(conn.last_synced_at) : 0;
   if (last && Date.now() - last < 2 * 60_000) {
@@ -141,7 +140,7 @@ export const runStravaSync = createServerFn({ method: "POST" }).handler(async ()
 
 export const disconnectStrava = createServerFn({ method: "POST" }).handler(async () => {
   (await import("./gate.server")).requireOwner();
-    const { saveConnection } = await import("./strava.server");
+  const { saveConnection } = await import("./strava.server");
   // Imported runs stay; only the connection is cleared.
   await saveConnection({
     access_token: null,

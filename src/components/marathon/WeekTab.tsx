@@ -101,7 +101,8 @@ export function WeekTab({ d }: { d: Dashboard }) {
         <div>
           <h2 className="font-display text-2xl font-semibold">This week</h2>
           <p className="text-sm text-muted-foreground tnum">
-            {d.plannedWeekMi} mi planned · Suggested ceiling {d.weeklyLimitMi} mi · {d.ceilingReason}
+            {d.plannedWeekMi} mi planned · Suggested ceiling {d.weeklyLimitMi} mi ·{" "}
+            {d.ceilingReason}
           </p>
         </div>
         <Button onClick={() => setAdjustOpen(true)}>Adjust this week</Button>
@@ -182,12 +183,7 @@ export function WeekTab({ d }: { d: Dashboard }) {
         ))}
       </ul>
 
-      <AdjustWeek
-        d={d}
-        dates={dates}
-        open={adjustOpen}
-        onOpenChange={setAdjustOpen}
-      />
+      <AdjustWeek d={d} dates={dates} open={adjustOpen} onOpenChange={setAdjustOpen} />
     </div>
   );
 }
@@ -212,7 +208,10 @@ function AdjustWeek({
 
   const remaining = d.weekRows
     .map((row, i) => ({ row, i }))
-    .filter((x): x is { row: PlanDayRow; i: number } => !!x.row && x.row.date >= d.today && x.row.status !== "skipped");
+    .filter(
+      (x): x is { row: PlanDayRow; i: number } =>
+        !!x.row && x.row.date >= d.today && x.row.status !== "skipped",
+    );
 
   const selected = remaining.find((x) => x.row.id === dayId) ?? null;
 
@@ -220,7 +219,9 @@ function AdjustWeek({
   const freeSlot = selected
     ? d.weekRows
         .map((row, i) => ({ row, i }))
-        .find((x) => !x.row && (dates[x.i] ?? "") > selected.row.date && (dates[x.i] ?? "") >= d.today)
+        .find(
+          (x) => !x.row && (dates[x.i] ?? "") > selected.row.date && (dates[x.i] ?? "") >= d.today,
+        )
     : null;
 
   const suggestion = selected
@@ -287,9 +288,7 @@ function AdjustWeek({
               placeholder="Travelling, work, tired"
             />
           </div>
-          {suggestion && (
-            <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm">{suggestion}</p>
-          )}
+          {suggestion && <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm">{suggestion}</p>}
           <Button onClick={apply} disabled={!suggestion || busy}>
             Apply change
           </Button>

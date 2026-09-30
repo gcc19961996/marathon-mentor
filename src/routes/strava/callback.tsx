@@ -9,9 +9,15 @@ export const Route = createFileRoute("/strava/callback")({
   head: () => ({
     meta: [
       { title: "Connecting Strava · Marathon Training Companion" },
-      { name: "description", content: "Finishing the Strava connection for your marathon training plan." },
+      {
+        name: "description",
+        content: "Finishing the Strava connection for your marathon training plan.",
+      },
       { property: "og:title", content: "Connecting Strava" },
-      { property: "og:description", content: "Finishing the Strava connection for your marathon training plan." },
+      {
+        property: "og:description",
+        content: "Finishing the Strava connection for your marathon training plan.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -49,7 +55,8 @@ function StravaCallback() {
       return;
     }
     if (!scope.includes("activity:read_all")) {
-      const message = "Strava needs permission to view your activities — connect again and tick that box.";
+      const message =
+        "Strava needs permission to view your activities — connect again and tick that box.";
       void saveError({ data: { message } });
       setState({
         kind: "error",
@@ -82,7 +89,11 @@ function StravaCallback() {
   return (
     <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-4 p-8">
       <h1 className="font-display text-2xl font-semibold">
-        {state.kind === "ok" ? "Strava connected" : state.kind === "error" ? "Strava was not connected" : "Connecting Strava"}
+        {state.kind === "ok"
+          ? "Strava connected"
+          : state.kind === "error"
+            ? "Strava was not connected"
+            : "Connecting Strava"}
       </h1>
       <p className={state.kind === "error" ? "text-destructive" : "text-muted-foreground"}>
         {state.message}

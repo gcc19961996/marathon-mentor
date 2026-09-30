@@ -102,7 +102,11 @@ export function useProfile(userId?: string) {
   return useQuery({
     queryKey: ["profile", userId],
     queryFn: async (): Promise<Profile> => {
-      const existing = await op<Profile | null>({ table: "profile", action: "select", single: true });
+      const existing = await op<Profile | null>({
+        table: "profile",
+        action: "select",
+        single: true,
+      });
       if (existing) return existing;
       return op<Profile>({ table: "profile", action: "insert", values: {}, single: true });
     },
@@ -136,7 +140,11 @@ export function useTargets(userId?: string) {
 export function useSetTarget(userId?: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: { target_seconds: number; target_pace_seconds: number; note?: string }) => {
+    mutationFn: async (v: {
+      target_seconds: number;
+      target_pace_seconds: number;
+      note?: string;
+    }) => {
       await op({ table: "target_times", action: "insert", values: v });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["targets"] }),
@@ -173,7 +181,12 @@ export function useRunMutations(userId?: string) {
     }),
     update: useMutation({
       mutationFn: async ({ id, ...patch }: Partial<Run> & { id: string }) => {
-        await op({ table: "runs", action: "update", match: { id }, values: patch as Record<string, unknown> });
+        await op({
+          table: "runs",
+          action: "update",
+          match: { id },
+          values: patch as Record<string, unknown>,
+        });
       },
       onSuccess: invalidate,
     }),
@@ -209,7 +222,11 @@ export function usePlanMutations(userId?: string) {
   return {
     weekStart,
     save: useMutation({
-      mutationFn: async (v: { option_a: unknown; option_b: unknown; selected_option?: string | null }) => {
+      mutationFn: async (v: {
+        option_a: unknown;
+        option_b: unknown;
+        selected_option?: string | null;
+      }) => {
         await op({
           table: "weekly_plans",
           action: "upsert",
@@ -308,7 +325,12 @@ export function useMilestoneMutations(userId?: string) {
     }),
     update: useMutation({
       mutationFn: async ({ id, ...patch }: Partial<Milestone> & { id: string }) => {
-        await op({ table: "milestones", action: "update", match: { id }, values: patch as Record<string, unknown> });
+        await op({
+          table: "milestones",
+          action: "update",
+          match: { id },
+          values: patch as Record<string, unknown>,
+        });
       },
       onSuccess: invalidate,
     }),
@@ -604,7 +626,12 @@ export function usePlanDayMutations(userId?: string) {
   return {
     update: useMutation({
       mutationFn: async ({ id, ...patch }: Partial<PlanDayRow> & { id: string }) => {
-        await op({ table: "plan_days", action: "update", match: { id }, values: patch as Record<string, unknown> });
+        await op({
+          table: "plan_days",
+          action: "update",
+          match: { id },
+          values: patch as Record<string, unknown>,
+        });
       },
       onSuccess: invalidate,
     }),

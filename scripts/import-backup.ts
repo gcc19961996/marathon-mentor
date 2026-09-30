@@ -45,7 +45,9 @@ if (!url || !key || url.includes("FILL_IN") || key.includes("FILL_IN")) {
   process.exit(1);
 }
 if (url.includes("rbojbxptqrlwyqlrlyns")) {
-  console.error("Refusing to import into the Lovable database. Point .env.local at the new project.");
+  console.error(
+    "Refusing to import into the Lovable database. Point .env.local at the new project.",
+  );
   process.exit(1);
 }
 
@@ -61,7 +63,9 @@ console.log(`Target database ${new URL(url).host}`);
 for (const t of TABLES) console.log(`  ${t.padEnd(18)} ${backup.tables[t]!.length} rows`);
 
 if (!confirmed) {
-  console.log("\nDry run only. Re-run with --yes to replace the database contents with this backup.");
+  console.log(
+    "\nDry run only. Re-run with --yes to replace the database contents with this backup.",
+  );
   process.exit(0);
 }
 

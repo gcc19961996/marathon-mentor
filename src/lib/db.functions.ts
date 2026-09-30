@@ -26,10 +26,18 @@ const OpSchema = z.object({
   table: z.enum(TABLES),
   action: z.enum(["select", "insert", "update", "upsert", "delete"]),
   columns: z.string().optional(),
-  values: z.union([z.record(z.string(), z.unknown()), z.array(z.record(z.string(), z.unknown()))]).optional(),
+  values: z
+    .union([z.record(z.string(), z.unknown()), z.array(z.record(z.string(), z.unknown()))])
+    .optional(),
   match: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   order: z
-    .array(z.object({ column: z.string(), ascending: z.boolean().optional(), nullsFirst: z.boolean().optional() }))
+    .array(
+      z.object({
+        column: z.string(),
+        ascending: z.boolean().optional(),
+        nullsFirst: z.boolean().optional(),
+      }),
+    )
     .optional(),
   limit: z.number().int().positive().max(5000).optional(),
   single: z.boolean().optional(),
@@ -141,7 +149,6 @@ export const dbOp = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const table = supabaseAdmin.from(data.table as never);
 
-
     const applyFilters = (builder: any) => {
       let b = builder.eq("user_id", SINGLE_USER_ID);
       for (const [key, value] of Object.entries(data.match ?? {})) b = b.eq(key, value);
@@ -170,7 +177,6 @@ export const dbOp = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return rows ?? (data.single ? null : []);
     }
-
 
     if (data.action === "insert") {
       const payload = Array.isArray(data.values)
@@ -212,17 +218,15 @@ export const dbOp = createServerFn({ method: "POST" })
   });
 
 /** Full JSON snapshot of every table, for manual backups. */
-export const exportAllData = createServerFn({ method: "GET" }).handler(
-  async (): Promise<any> => {
-    const gate = await import("./gate.server");
-    gate.requireOwner();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const tables: Record<string, any[]> = {};
-    for (const name of TABLES) {
-      const { data, error } = await supabaseAdmin.from(name as never).select("*");
-      if (error) throw new Error(error.message);
-      tables[name] = data ?? [];
-    }
-    return { exportedAt: new Date().toISOString(), tables };
-  },
-);
+export const exportAllData = createServerFn({ method: "GET" }).handler(async (): Promise<any> => {
+  const gate = await import("./gate.server");
+  gate.requireOwner();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const tables: Record<string, any[]> = {};
+  for (const name of TABLES) {
+    const { data, error } = await supabaseAdmin.from(name as never).select("*");
+    if (error) throw new Error(error.message);
+    tables[name] = data ?? [];
+  }
+  return { exportedAt: new Date().toISOString(), tables };
+});

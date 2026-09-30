@@ -33,15 +33,26 @@ export function effortColor(effort: EffortKey): string {
   return EFFORT_BANDS.find((band) => band.key === effort)?.color ?? "var(--muted-foreground)";
 }
 
-
 /** Neutral description of how hard a run actually was. */
-export function effortFor(paceSeconds: number | null | undefined, _zones?: Zone[]): EffortKey | null {
+export function effortFor(
+  paceSeconds: number | null | undefined,
+  _zones?: Zone[],
+): EffortKey | null {
   if (!paceSeconds) return null;
   return EFFORT_BANDS.find((band) => paceSeconds >= band.minimum)?.key ?? "Hard";
 }
 
-export function isRaceRun(run: { date: string; distance_mi: number; type?: string | null }): boolean {
-  return run.type === "Race" || (run.date === "2026-04-26" && Number(run.distance_mi) >= 13.1 && Number(run.distance_mi) <= 13.8);
+export function isRaceRun(run: {
+  date: string;
+  distance_mi: number;
+  type?: string | null;
+}): boolean {
+  return (
+    run.type === "Race" ||
+    (run.date === "2026-04-26" &&
+      Number(run.distance_mi) >= 13.1 &&
+      Number(run.distance_mi) <= 13.8)
+  );
 }
 
 /* ---------- warning flags ---------- */
@@ -73,7 +84,14 @@ function hasWorkout(run: FlagRun): boolean {
 
 function hasChosenQualityWorkout(run: FlagRun): boolean {
   const type = (run.type ?? "").trim().toLowerCase();
-  return type === "tempo" || type === "strides" || type === "mp" || type === "marathon-pace" || type === "marathon-pace run" || type === "mp workout";
+  return (
+    type === "tempo" ||
+    type === "strides" ||
+    type === "mp" ||
+    type === "marathon-pace" ||
+    type === "marathon-pace run" ||
+    type === "mp workout"
+  );
 }
 
 /** Amber warnings, only when they are actually true. */
@@ -98,14 +116,15 @@ export function runFlags(
     flags.push("Clock left running");
   }
 
-
   // At most one speed warning per run, chosen by run length.
   const length = runLengthLabel(run.distance_mi);
   if (!altitudeDay && pace) {
     if (length === "Short run") {
-      if (pace < 505 && !hasChosenQualityWorkout(run) && run.date >= PLAN_START) flags.push("Short faster than 8:25");
+      if (pace < 505 && !hasChosenQualityWorkout(run) && run.date >= PLAN_START)
+        flags.push("Short faster than 8:25");
     } else if (length === "Medium run") {
-      if (pace < 590 && !hasWorkout(run) && run.date >= PLAN_START) flags.push("Medium faster than 9:50");
+      if (pace < 590 && !hasWorkout(run) && run.date >= PLAN_START)
+        flags.push("Medium faster than 9:50");
     } else if (pace < 590 && !hasWorkout(run)) {
       flags.push("Long faster than 9:50");
     }
@@ -114,7 +133,8 @@ export function runFlags(
   if (pace && pace < 540) {
     const prev = dayBefore(run.date);
     const fastYesterday = allRuns.some(
-      (r) => !isRaceRun(r) && r.date === prev && r.avg_pace_seconds != null && r.avg_pace_seconds < 540,
+      (r) =>
+        !isRaceRun(r) && r.date === prev && r.avg_pace_seconds != null && r.avg_pace_seconds < 540,
     );
     if (fastYesterday) flags.push("Back-to-back fast days");
   }
@@ -129,7 +149,9 @@ export function runFlags(
     flags.push("Big jump");
   }
 
-  const rows = run.strava_activity_id ? splitsByActivity?.get(Number(run.strava_activity_id)) : null;
+  const rows = run.strava_activity_id
+    ? splitsByActivity?.get(Number(run.strava_activity_id))
+    : null;
   // Suspect splits (stops, GPS spikes) are left out of the fade check.
   const paces = rows
     ? usableSplits(

@@ -58,7 +58,10 @@ export function parsePastedRuns(text: string, existing: Run[]): PastedRow[] {
 }
 
 /** Plan day for a date in the active week, or null when it's another week. */
-export function planDayFor(date: string, activeDays: PlanDay[]): { index: number; day: PlanDay } | null {
+export function planDayFor(
+  date: string,
+  activeDays: PlanDay[],
+): { index: number; day: PlanDay } | null {
   const i = dayIndexOf(date, startOfWeek());
   if (i < 0 || i > 6) return null;
   const day = activeDays[i];
@@ -78,11 +81,7 @@ export type WeekRecap = {
   line: string;
 };
 
-export function weekRecap(
-  runs: Run[],
-  planDays: PlanDay[],
-  weekStart: string,
-): WeekRecap {
+export function weekRecap(runs: Run[], planDays: PlanDay[], weekStart: string): WeekRecap {
   const start = new Date(`${weekStart}T00:00:00`);
   const end = isoDate(new Date(start.getTime() + 6 * 86400000));
   const weekRuns = runs.filter((r) => r.date >= weekStart && r.date <= end);
@@ -153,7 +152,9 @@ export function longRunHold(args: {
   const lastCompleted = [...args.runs]
     .filter((r) => Number(r.distance_mi) >= 8)
     .sort((a, b) => b.date.localeCompare(a.date))[0];
-  const suggest = Math.round((lastCompleted ? Number(lastCompleted.distance_mi) : recap.longRunActualMi) * 10) / 10;
+  const suggest =
+    Math.round((lastCompleted ? Number(lastCompleted.distance_mi) : recap.longRunActualMi) * 10) /
+    10;
   if (!suggest || suggest >= planned) return null;
 
   return {

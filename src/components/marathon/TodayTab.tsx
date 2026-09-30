@@ -16,7 +16,13 @@ import {
 import type { Dashboard } from "@/lib/dashboard";
 import { typeLabel } from "@/lib/fixedPlan";
 import { longRunHold } from "@/lib/tracking";
-import { formatPace, isoDate, parseDuration, startOfWeek, workoutPaceVerdict } from "@/lib/training";
+import {
+  formatPace,
+  isoDate,
+  parseDuration,
+  startOfWeek,
+  workoutPaceVerdict,
+} from "@/lib/training";
 
 export function TodayTab({ d }: { d: Dashboard }) {
   return (
@@ -237,11 +243,21 @@ function QuickLog({ d }: { d: Dashboard }) {
       <form className="mt-3 flex flex-wrap items-end gap-3" onSubmit={submit}>
         <div className="w-28 space-y-1.5">
           <Label htmlFor="qmiles">Miles</Label>
-          <Input id="qmiles" inputMode="decimal" value={miles} onChange={(e) => setMiles(e.target.value)} />
+          <Input
+            id="qmiles"
+            inputMode="decimal"
+            value={miles}
+            onChange={(e) => setMiles(e.target.value)}
+          />
         </div>
         <div className="w-32 space-y-1.5">
           <Label htmlFor="qtime">Time</Label>
-          <Input id="qtime" placeholder="mm:ss" value={time} onChange={(e) => setTime(e.target.value)} />
+          <Input
+            id="qtime"
+            placeholder="mm:ss"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+          />
         </div>
         {fastTarget && (
           <div className="w-40 space-y-1.5">
@@ -258,7 +274,12 @@ function QuickLog({ d }: { d: Dashboard }) {
           <>
             <div className="w-24 space-y-1.5">
               <Label htmlFor="qgels">Gels</Label>
-              <Input id="qgels" inputMode="numeric" value={gels} onChange={(e) => setGels(e.target.value)} />
+              <Input
+                id="qgels"
+                inputMode="numeric"
+                value={gels}
+                onChange={(e) => setGels(e.target.value)}
+              />
             </div>
             <div className="w-28 space-y-1.5">
               <Label htmlFor="qfluids">Fluids (oz)</Label>
@@ -312,7 +333,12 @@ function CrossTrainingRow({ d }: { d: Dashboard }) {
       <div className="mt-3 flex flex-wrap items-end gap-3">
         <div className="w-28 space-y-1.5">
           <Label htmlFor="xmin">Minutes</Label>
-          <Input id="xmin" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value)} />
+          <Input
+            id="xmin"
+            inputMode="numeric"
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+          />
         </div>
         {["Yoga", "Gym", "Bike", "Other"].map((a) => (
           <Button key={a} type="button" variant="secondary" onClick={() => log(a)}>
@@ -384,13 +410,18 @@ function RaceWeekChecklist({ d }: { d: Dashboard }) {
       </h3>
       <ul className="mt-3 space-y-2">
         {(items.data ?? []).map((it) => (
-          <li key={it.id} className="flex flex-wrap items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted/50">
+          <li
+            key={it.id}
+            className="flex flex-wrap items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted/50"
+          >
             <Checkbox
               checked={it.checked}
               onCheckedChange={(v) => update.mutate({ id: it.id, checked: !!v })}
               aria-label={it.label}
             />
-            <span className={`flex-1 text-sm ${it.checked ? "text-muted-foreground line-through" : ""}`}>
+            <span
+              className={`flex-1 text-sm ${it.checked ? "text-muted-foreground line-through" : ""}`}
+            >
               {it.label}
             </span>
             <Input

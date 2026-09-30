@@ -37,10 +37,13 @@ import {
 } from "./training";
 
 export function sumMiles(runs: Run[], from: string, to: string) {
-  return Math.round(
-    runs.filter((r) => r.date >= from && r.date <= to).reduce((s, r) => s + Number(r.distance_mi), 0) *
-      10,
-  ) / 10;
+  return (
+    Math.round(
+      runs
+        .filter((r) => r.date >= from && r.date <= to)
+        .reduce((s, r) => s + Number(r.distance_mi), 0) * 10,
+    ) / 10
+  );
 }
 
 /** Long-run distance a milestone implies, when it names one. */
@@ -82,7 +85,11 @@ export function useDashboard() {
 
     const predictedSeconds =
       profile?.recent_race_distance_mi && profile?.recent_race_seconds
-        ? riegel(Number(profile.recent_race_distance_mi), Number(profile.recent_race_seconds), MARATHON_MI)
+        ? riegel(
+            Number(profile.recent_race_distance_mi),
+            Number(profile.recent_race_seconds),
+            MARATHON_MI,
+          )
         : null;
     const fitnessMp = predictedSeconds ? predictedSeconds / MARATHON_MI : null;
 
@@ -98,7 +105,8 @@ export function useDashboard() {
       list.push(s as SplitRow);
       splitsByActivity.set(Number(s.strava_activity_id), list);
     }
-    for (const list of splitsByActivity.values()) list.sort((a, b) => a.mile_number - b.mile_number);
+    for (const list of splitsByActivity.values())
+      list.sort((a, b) => a.mile_number - b.mile_number);
     const check =
       activeTarget && predictedSeconds
         ? targetCheck(activeTarget.target_seconds, predictedSeconds)
@@ -131,9 +139,7 @@ export function useDashboard() {
     const todayPlanned = activeDays[dayIndex] ?? null;
 
     const phaseLabel = currentWeek?.phase ?? phaseFor(weeks);
-    const plannedWeekMi = currentWeek
-      ? Number(currentWeek.target_miles)
-      : planTotal(activeDays);
+    const plannedWeekMi = currentWeek ? Number(currentWeek.target_miles) : planTotal(activeDays);
     const limit = currentWeek ? Number(currentWeek.suggested_ceiling) : plannedWeekMi;
     const ceilingReason = currentWeek
       ? `week ${currentWeek.week_number} of the plan · ${currentWeek.phase}`
@@ -175,7 +181,11 @@ export function useDashboard() {
           pace: loggedLong.avg_pace_seconds,
         }
       : profile?.longest_run_mi
-        ? { date: profile.longest_run_date ?? "", distance_mi: Number(profile.longest_run_mi), pace: null }
+        ? {
+            date: profile.longest_run_date ?? "",
+            distance_mi: Number(profile.longest_run_mi),
+            pace: null,
+          }
         : null;
 
     const setupComplete = !!(profile?.setup_complete && activeTarget);
@@ -297,7 +307,10 @@ export function useDashboard() {
 
 export type Dashboard = ReturnType<typeof useDashboard>;
 
-export function buildAiContext(d: Dashboard, extras?: { daysAvailable?: string[]; notes?: string | null }) {
+export function buildAiContext(
+  d: Dashboard,
+  extras?: { daysAvailable?: string[]; notes?: string | null },
+) {
   const cutoff = isoDate(new Date(nyToday().getTime() - 14 * 86400000));
   const recent = d.runs
     .filter((r) => r.date >= cutoff)
@@ -308,9 +321,8 @@ export function buildAiContext(d: Dashboard, extras?: { daysAvailable?: string[]
     .join("; ");
 
   const week = d.activeDays
-    .map(
-      (day, i) =>
-        `${DAY_NAMES[i]}: ${day.type} ${day.distance_mi ? `${day.distance_mi}mi` : ""} ${day.pace_zone ?? ""}`.trim(),
+    .map((day, i) =>
+      `${DAY_NAMES[i]}: ${day.type} ${day.distance_mi ? `${day.distance_mi}mi` : ""} ${day.pace_zone ?? ""}`.trim(),
     )
     .join("; ");
 

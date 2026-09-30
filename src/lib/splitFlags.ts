@@ -65,7 +65,9 @@ function median(values: number[]): number | null {
   if (!values.length) return null;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 ? (sorted[mid] as number) : ((sorted[mid - 1] as number) + (sorted[mid] as number)) / 2;
+  return sorted.length % 2
+    ? (sorted[mid] as number)
+    : ((sorted[mid - 1] as number) + (sorted[mid] as number)) / 2;
 }
 
 /** Moving pace of a run, from its own average or its time over its distance. */
@@ -202,6 +204,7 @@ export function excludedNote(count: number): string | null {
 export function formatStop(seconds: number): string {
   const s = Math.round(seconds);
   const m = Math.floor(s / 60);
-  if (m >= 60) return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  if (m >= 60)
+    return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
   return `${m}:${String(s % 60).padStart(2, "0")}`;
 }

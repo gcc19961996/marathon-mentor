@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { unlockDevice, checkDeviceToken } from "@/lib/gate.functions";
-import {
-  clearDeviceToken,
-  getDeviceToken,
-  saveDeviceToken,
-  type AppRole,
-} from "@/lib/deviceToken";
+import { clearDeviceToken, getDeviceToken, saveDeviceToken, type AppRole } from "@/lib/deviceToken";
 
 export function PasscodeGate({ children }: { children: (role: AppRole) => React.ReactNode }) {
   const [role, setRole] = useState<AppRole | null>(null);

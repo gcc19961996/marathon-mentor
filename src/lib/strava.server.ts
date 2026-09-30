@@ -59,10 +59,9 @@ export async function getConnection(): Promise<Connection | null> {
 export async function saveConnection(patch: Record<string, unknown>) {
   const { error } = await supabaseAdmin
     .from("strava_connection")
-    .upsert(
-      { user_id: SINGLE_USER_ID, updated_at: new Date().toISOString(), ...patch } as never,
-      { onConflict: "user_id" },
-    );
+    .upsert({ user_id: SINGLE_USER_ID, updated_at: new Date().toISOString(), ...patch } as never, {
+      onConflict: "user_id",
+    });
   if (error) throw error;
 }
 
@@ -84,7 +83,10 @@ export async function exchangeCode(code: string) {
     console.error("[strava] token exchange failed", res.status, text);
     let detail = text;
     try {
-      const parsed = JSON.parse(text) as { message?: string; errors?: { field?: string; code?: string }[] };
+      const parsed = JSON.parse(text) as {
+        message?: string;
+        errors?: { field?: string; code?: string }[];
+      };
       const first = parsed.errors?.[0];
       detail = [parsed.message, first ? `${first.field ?? ""} ${first.code ?? ""}`.trim() : null]
         .filter(Boolean)
@@ -269,7 +271,10 @@ export async function syncStrava(
       if (existingStrava) {
         const existingType = String(existingStrava.type ?? "");
         const syncedType = label === "Race" || !existingType ? label : null;
-        await supabaseAdmin.from("runs").update({ ...fields, ...(syncedType ? { type: syncedType } : {}) } as never).eq("id", existingStrava.id);
+        await supabaseAdmin
+          .from("runs")
+          .update({ ...fields, ...(syncedType ? { type: syncedType } : {}) } as never)
+          .eq("id", existingStrava.id);
         continue;
       }
 
@@ -285,18 +290,19 @@ export async function syncStrava(
 
       if (twin) {
         const syncedType = label === "Race" || !twin.type ? label : null;
-        await supabaseAdmin.from("runs").update({ ...fields, ...(syncedType ? { type: syncedType } : {}) } as never).eq("id", twin.id);
-        matched++;
-      } else {
         await supabaseAdmin
           .from("runs")
-          .insert({
-            ...fields,
-            user_id: SINGLE_USER_ID,
-            type: label ?? "",
-            source: "strava",
-            notes: a.name ?? null,
-          } as never);
+          .update({ ...fields, ...(syncedType ? { type: syncedType } : {}) } as never)
+          .eq("id", twin.id);
+        matched++;
+      } else {
+        await supabaseAdmin.from("runs").insert({
+          ...fields,
+          user_id: SINGLE_USER_ID,
+          type: label ?? "",
+          source: "strava",
+          notes: a.name ?? null,
+        } as never);
         imported++;
       }
 
@@ -377,7 +383,12 @@ async function backfillSplits(token: string) {
           elapsed_time?: number;
           average_heartrate?: number;
         }[];
-        best_efforts?: { name: string; distance: number; moving_time: number; elapsed_time: number }[];
+        best_efforts?: {
+          name: string;
+          distance: number;
+          moving_time: number;
+          elapsed_time: number;
+        }[];
       }>(`/activities/${id}?include_all_efforts=true`, token);
 
       if (detail.elapsed_time && run.elapsed_seconds == null) {
@@ -467,14 +478,18 @@ type StoredRun = {
 async function loadRunsAndSplits() {
   const { data: runRows } = await supabaseAdmin
     .from("runs")
-    .select("strava_activity_id, date, distance_mi, duration_seconds, avg_pace_seconds, elapsed_seconds, streams_checked_at")
+    .select(
+      "strava_activity_id, date, distance_mi, duration_seconds, avg_pace_seconds, elapsed_seconds, streams_checked_at",
+    )
     .not("strava_activity_id", "is", null)
     .order("date", { ascending: false })
     .limit(500);
 
   const { data: splitRows } = await supabaseAdmin
     .from("run_splits")
-    .select("strava_activity_id, mile_number, pace_seconds, distance_mi, moving_seconds, elapsed_seconds, heart_rate, flag, flag_reason")
+    .select(
+      "strava_activity_id, mile_number, pace_seconds, distance_mi, moving_seconds, elapsed_seconds, heart_rate, flag, flag_reason",
+    )
     .limit(10000);
 
   const byActivity = new Map<number, SplitRow[]>();
@@ -484,7 +499,13 @@ async function loadRunsAndSplits() {
     list.push(row);
     byActivity.set(id, list);
   }
-  return { runRows: (runRows ?? []) as unknown as (StoredRun & { date: string; streams_checked_at: string | null })[], byActivity };
+  return {
+    runRows: (runRows ?? []) as unknown as (StoredRun & {
+      date: string;
+      streams_checked_at: string | null;
+    })[],
+    byActivity,
+  };
 }
 
 /**
@@ -502,7 +523,10 @@ export async function recomputeAllFlags() {
     for (const split of flagged) {
       const stored = rows.find((r) => r.mile_number === split.mile);
       if (!stored) continue;
-      if ((stored.flag ?? null) === (split.flag ?? null) && (stored.flag_reason ?? null) === (split.reason ?? null)) {
+      if (
+        (stored.flag ?? null) === (split.flag ?? null) &&
+        (stored.flag_reason ?? null) === (split.reason ?? null)
+      ) {
         continue;
       }
       updates.push({
@@ -567,7 +591,8 @@ async function confirmFlaggedSplits(token: string) {
           .from("run_splits")
           .update({
             flag: "gap",
-            flag_reason: "no GPS points for over a minute — this mile's distance may be undercounted",
+            flag_reason:
+              "no GPS points for over a minute — this mile's distance may be undercounted",
           } as never)
           .eq("strava_activity_id", id)
           .eq("mile_number", row.mile_number);

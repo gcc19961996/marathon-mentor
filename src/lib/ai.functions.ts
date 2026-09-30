@@ -63,9 +63,12 @@ const MAX_AI_CALLS_PER_DAY = 30;
 // Cheap abuse guard for the public URL: 30 coach calls per calendar day.
 async function enforceDailyLimit() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.rpc("bump_ai_usage" as never, {
-    max_per_day: MAX_AI_CALLS_PER_DAY,
-  } as never);
+  const { data, error } = await supabaseAdmin.rpc(
+    "bump_ai_usage" as never,
+    {
+      max_per_day: MAX_AI_CALLS_PER_DAY,
+    } as never,
+  );
   if (error) {
     console.error("[ai] usage counter failed", error);
     return;

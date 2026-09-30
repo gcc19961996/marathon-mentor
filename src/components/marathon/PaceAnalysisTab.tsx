@@ -53,7 +53,6 @@ import {
   type TrendType,
 } from "@/lib/paceAnalysis";
 
-
 const EASY_BAND = { from: 590, to: 620 };
 
 function formatClock(seconds: number): string {
@@ -63,15 +62,15 @@ function formatClock(seconds: number): string {
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-lg bg-muted/40 px-3 py-6 text-center text-sm text-muted-foreground">{children}</p>;
+  return (
+    <p className="rounded-lg bg-muted/40 px-3 py-6 text-center text-sm text-muted-foreground">
+      {children}
+    </p>
+  );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="section-kicker mb-4">
-      {children}
-    </h3>
-  );
+  return <h3 className="section-kicker mb-4">{children}</h3>;
 }
 
 function paceDifference(seconds: number): string {
@@ -79,16 +78,32 @@ function paceDifference(seconds: number): string {
   return `${Math.abs(Math.round(seconds))} s/mi ${seconds < 0 ? "faster" : "slower"}`;
 }
 
-function PaceDistanceTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload?: PaceDistancePoint }> }) {
+function PaceDistanceTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload?: PaceDistancePoint }>;
+}) {
   const point = payload?.find((item) => item.payload?.date)?.payload;
   if (!active || !point) return null;
   const difference = point.trendPace == null ? null : point.pace - point.trendPace;
   return (
     <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-card">
-      <p className="font-semibold">{new Date(`${point.date}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
-      <p>{point.distance.toFixed(1)} mi · {formatPace(point.pace)}</p>
+      <p className="font-semibold">
+        {new Date(`${point.date}T00:00:00`).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}
+      </p>
+      <p>
+        {point.distance.toFixed(1)} mi · {formatPace(point.pace)}
+      </p>
       <p>{point.type || (point.race ? "Race" : "Run")}</p>
-      {difference != null && <p className="mt-1 text-muted-foreground">{paceDifference(difference)} than your trend</p>}
+      {difference != null && (
+        <p className="mt-1 text-muted-foreground">{paceDifference(difference)} than your trend</p>
+      )}
     </div>
   );
 }
@@ -96,7 +111,15 @@ function PaceDistanceTooltip({ active, payload }: { active?: boolean; payload?: 
 function RaceDot(props: any) {
   const { cx, cy, fill, opacity } = props;
   if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-  return <path d={`M ${cx} ${cy - 6} L ${cx + 6} ${cy} L ${cx} ${cy + 6} L ${cx - 6} ${cy} Z`} fill={fill} fillOpacity={opacity} stroke="var(--background)" strokeWidth={1.5} />;
+  return (
+    <path
+      d={`M ${cx} ${cy - 6} L ${cx + 6} ${cy} L ${cx} ${cy + 6} L ${cx - 6} ${cy} Z`}
+      fill={fill}
+      fillOpacity={opacity}
+      stroke="var(--background)"
+      strokeWidth={1.5}
+    />
+  );
 }
 
 function SmallDot(props: any) {
@@ -119,10 +142,16 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
   const split = useMemo(() => splitMiles(runs, d.splitsByActivity), [runs, d.splitsByActivity]);
   const miles = split.miles;
   const summary = useMemo(() => paceSummary(runs, miles), [runs, miles]);
-  const trend = useMemo(() => paceTrend(runs, range, types, from, d.today), [runs, range, types, from, d.today]);
+  const trend = useMemo(
+    () => paceTrend(runs, range, types, from, d.today),
+    [runs, range, types, from, d.today],
+  );
   const buckets = useMemo(() => paceDistribution(miles), [miles]);
   const mix = useMemo(() => zoneMix(miles), [miles]);
-  const efforts = useMemo(() => bestEfforts(runs, d.bestEffortRows, d.splitsByActivity), [runs, d.bestEffortRows, d.splitsByActivity]);
+  const efforts = useMemo(
+    () => bestEfforts(runs, d.bestEffortRows, d.splitsByActivity),
+    [runs, d.bestEffortRows, d.splitsByActivity],
+  );
   const goalPace = d.goalPace;
 
   const chartData = trend.map((p) => {
@@ -136,7 +165,9 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
     return row;
   });
 
-  const paces = trend.flatMap((p) => TREND_TYPES.map((t) => p.values[t]?.pace).filter(Boolean) as number[]);
+  const paces = trend.flatMap(
+    (p) => TREND_TYPES.map((t) => p.values[t]?.pace).filter(Boolean) as number[],
+  );
   // Always keep the easy band (9:50-10:20) and goal pace in view.
   const fastest = Math.min(goalPace - 20, ...(paces.length ? paces : [goalPace]));
   const slowest = Math.max(630, EASY_BAND.to + 10, ...(paces.length ? paces : []));
@@ -166,18 +197,38 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
     : [0, HALF_HOUR];
   const predTicks: number[] = [];
   for (let t = predDomain[0]; t <= predDomain[1]; t += HALF_HOUR) predTicks.push(t);
-  const longRuns = useMemo(() => longRunCheck(runs, d.splitsByActivity), [runs, d.splitsByActivity]);
-  const comparisonDates = useMemo(() => comparisonWindow(from, d.today, comparison), [from, d.today, comparison]);
+  const longRuns = useMemo(
+    () => longRunCheck(runs, d.splitsByActivity),
+    [runs, d.splitsByActivity],
+  );
+  const comparisonDates = useMemo(
+    () => comparisonWindow(from, d.today, comparison),
+    [from, d.today, comparison],
+  );
   const comparisonRunsRaw = useMemo(
-    () => comparisonDates ? inRange(d.runs, comparisonDates.from, comparisonDates.to) : [],
+    () => (comparisonDates ? inRange(d.runs, comparisonDates.from, comparisonDates.to) : []),
     [d.runs, comparisonDates],
   );
-  const comparisonAvailable = comparison !== "off" && comparisonRunsRaw.filter((run) => run.distance_mi > 0 && run.duration_seconds > 0).length >= 3;
+  const comparisonAvailable =
+    comparison !== "off" &&
+    comparisonRunsRaw.filter((run) => run.distance_mi > 0 && run.duration_seconds > 0).length >= 3;
   const comparisonRuns = comparisonAvailable ? comparisonRunsRaw : [];
-  const currentFit = useMemo(() => fitPaceDistance(runs, effortNormalized), [runs, effortNormalized]);
-  const comparisonFit = useMemo(() => fitPaceDistance(comparisonRuns, effortNormalized), [comparisonRuns, effortNormalized]);
-  const currentPoints = useMemo(() => paceDistancePoints(runs, effortNormalized, "current", currentFit), [runs, effortNormalized, currentFit]);
-  const comparisonPoints = useMemo(() => paceDistancePoints(comparisonRuns, effortNormalized, "comparison", comparisonFit), [comparisonRuns, effortNormalized, comparisonFit]);
+  const currentFit = useMemo(
+    () => fitPaceDistance(runs, effortNormalized),
+    [runs, effortNormalized],
+  );
+  const comparisonFit = useMemo(
+    () => fitPaceDistance(comparisonRuns, effortNormalized),
+    [comparisonRuns, effortNormalized],
+  );
+  const currentPoints = useMemo(
+    () => paceDistancePoints(runs, effortNormalized, "current", currentFit),
+    [runs, effortNormalized, currentFit],
+  );
+  const comparisonPoints = useMemo(
+    () => paceDistancePoints(comparisonRuns, effortNormalized, "comparison", comparisonFit),
+    [comparisonRuns, effortNormalized, comparisonFit],
+  );
   const currentTrend = useMemo(() => paceDistanceTrend(currentFit), [currentFit]);
   const comparisonTrend = useMemo(() => paceDistanceTrend(comparisonFit), [comparisonFit]);
   const distanceRows = useMemo(() => likeForLike(runs, comparisonRuns), [runs, comparisonRuns]);
@@ -187,7 +238,12 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
   const maxDistance = distanceValues.length ? Math.max(...distanceValues) : 16;
   const distanceRatio = maxDistance / Math.max(minDistance, 0.1);
   const xPad = Math.max(0.08, Math.pow(distanceRatio, 0.1) - 1);
-  const paceValues = [...paceDistanceValues.map((point) => point.pace), EASY_BAND.from, EASY_BAND.to, goalPace];
+  const paceValues = [
+    ...paceDistanceValues.map((point) => point.pace),
+    EASY_BAND.from,
+    EASY_BAND.to,
+    goalPace,
+  ];
   const paceMin = Math.min(...paceValues);
   const paceMax = Math.max(...paceValues);
   const pacePad = Math.max(15, (paceMax - paceMin) * 0.1);
@@ -197,23 +253,44 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
     Math.ceil((paceMax + pacePad) / paceTickStep) * paceTickStep,
   ];
   const paceDistanceTicks: number[] = [];
-  for (let tick = paceDomain[0]; tick <= paceDomain[1]; tick += paceTickStep) paceDistanceTicks.push(tick);
-  const distanceTicks = [2, 3, 4, 6, 8, 12, 16].filter((tick) => tick >= minDistance / (1 + xPad) && tick <= maxDistance * (1 + xPad));
+  for (let tick = paceDomain[0]; tick <= paceDomain[1]; tick += paceTickStep)
+    paceDistanceTicks.push(tick);
+  const distanceTicks = [2, 3, 4, 6, 8, 12, 16].filter(
+    (tick) => tick >= minDistance / (1 + xPad) && tick <= maxDistance * (1 + xPad),
+  );
   const currentEight = paceAtDistance(currentFit, 8);
   const comparisonEight = paceAtDistance(comparisonFit, 8);
   const currentLabel = periodRangeLabel(from, d.today);
   const currentTrendEnd = currentTrend.at(-1)?.pace ?? null;
   const comparisonTrendEnd = comparisonTrend.at(-1)?.pace ?? null;
   const showEightGuide =
-    currentFit != null && comparisonFit != null && currentEight != null && comparisonEight != null &&
-    8 >= currentFit.minDistance && 8 <= currentFit.maxDistance && 8 >= comparisonFit.minDistance && 8 <= comparisonFit.maxDistance;
-  const eightGap = showEightGuide ? Math.round((currentEight as number) - (comparisonEight as number)) : null;
+    currentFit != null &&
+    comparisonFit != null &&
+    currentEight != null &&
+    comparisonEight != null &&
+    8 >= currentFit.minDistance &&
+    8 <= currentFit.maxDistance &&
+    8 >= comparisonFit.minDistance &&
+    8 <= comparisonFit.maxDistance;
+  const eightGap = showEightGuide
+    ? Math.round((currentEight as number) - (comparisonEight as number))
+    : null;
   const longestInRangeRun = useMemo(
-    () => runs.reduce<AnalysisRun | null>((best, r) => (!best || Number(r.distance_mi) > Number(best.distance_mi) ? r : best), null),
+    () =>
+      runs.reduce<AnalysisRun | null>(
+        (best, r) => (!best || Number(r.distance_mi) > Number(best.distance_mi) ? r : best),
+        null,
+      ),
     [runs],
   );
-  const longestAllMi = useMemo(() => d.runs.reduce((m, r) => Math.max(m, Number(r.distance_mi || 0)), 0), [d.runs]);
-  const allEfforts = useMemo(() => bestEfforts(d.runs, d.bestEffortRows, d.splitsByActivity), [d.runs, d.bestEffortRows, d.splitsByActivity]);
+  const longestAllMi = useMemo(
+    () => d.runs.reduce((m, r) => Math.max(m, Number(r.distance_mi || 0)), 0),
+    [d.runs],
+  );
+  const allEfforts = useMemo(
+    () => bestEfforts(d.runs, d.bestEffortRows, d.splitsByActivity),
+    [d.runs, d.bestEffortRows, d.splitsByActivity],
+  );
   const takeaway = useMemo(
     () =>
       keyTakeaway({
@@ -232,10 +309,21 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
         longestAllMi,
         summary,
       }),
-    [currentEight, comparisonEight, comparisonDates, currentFit, comparisonFit, summary, efforts, allEfforts, from, longRuns, longestInRangeRun, longestAllMi],
+    [
+      currentEight,
+      comparisonEight,
+      comparisonDates,
+      currentFit,
+      comparisonFit,
+      summary,
+      efforts,
+      allEfforts,
+      from,
+      longRuns,
+      longestInRangeRun,
+      longestAllMi,
+    ],
   );
-
-
 
   return (
     <div className="space-y-6">
@@ -246,33 +334,34 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
       {/* range picker */}
       <section className="space-y-4">
         <div className="flex flex-wrap gap-2">
-        {RANGE_OPTIONS.map((o) => (
-          <button
-            key={o.key}
-            type="button"
-            onClick={() => setRange(o.key)}
-            className={`h-7 rounded-full border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${range === o.key ? "border-sidebar bg-sidebar text-sidebar-foreground" : "border-border bg-transparent text-muted-foreground hover:border-foreground hover:text-foreground"}`}
-          >
-            {o.label}
-          </button>
-        ))}
+          {RANGE_OPTIONS.map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => setRange(o.key)}
+              className={`h-7 rounded-full border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${range === o.key ? "border-sidebar bg-sidebar text-sidebar-foreground" : "border-border bg-transparent text-muted-foreground hover:border-foreground hover:text-foreground"}`}
+            >
+              {o.label}
+            </button>
+          ))}
         </div>
         {takeaway && (
           <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Key takeaway</p>
+            <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+              Key takeaway
+            </p>
             <p className="mt-1 text-sm leading-relaxed">{takeaway}</p>
           </div>
         )}
         {split.excluded > 0 && (
-        <p className="text-xs text-muted-foreground">
-          {split.excluded} suspect {split.excluded === 1 ? "split" : "splits"} excluded
-          {split.tooFast > 0 && ` · ${split.tooFast} too fast`}
-          {split.tooSlow > 0 && ` · ${split.tooSlow} too slow`} — their miles still count towards
-          your totals
-        </p>
+          <p className="text-xs text-muted-foreground">
+            {split.excluded} suspect {split.excluded === 1 ? "split" : "splits"} excluded
+            {split.tooFast > 0 && ` · ${split.tooFast} too fast`}
+            {split.tooSlow > 0 && ` · ${split.tooSlow} too slow`} — their miles still count towards
+            your totals
+          </p>
         )}
       </section>
-
 
       {/* pace key */}
       <section>
@@ -281,7 +370,10 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
           {EFFORT_BANDS.map((band) => {
             const slice = mix.find((m) => m.zone === band.key);
             return (
-              <div key={band.key} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
+              <div
+                key={band.key}
+                className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2"
+              >
                 <span className="flex items-center gap-2 text-sm font-medium">
                   <span className="size-3 rounded-full" style={{ background: band.color }} />
                   {band.label}
@@ -306,7 +398,10 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
           { label: "Avg pace", value: formatPace(summary.avgPace) },
           { label: "Miles", value: summary.miles.toFixed(1) },
           { label: "Runs", value: String(summary.runs) },
-          { label: "Easy miles", value: summary.pctEasyMiles == null ? "—" : `${summary.pctEasyMiles}%` },
+          {
+            label: "Easy miles",
+            value: summary.pctEasyMiles == null ? "—" : `${summary.pctEasyMiles}%`,
+          },
           { label: "Longest run", value: `${summary.longestMi.toFixed(1)} mi` },
         ].map((s) => (
           <div key={s.label}>
@@ -336,7 +431,9 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
           })}
         </div>
         {chartData.length === 0 ? (
-          <div className="mt-4"><Empty>No runs in this period.</Empty></div>
+          <div className="mt-4">
+            <Empty>No runs in this period.</Empty>
+          </div>
         ) : (
           <div className="mt-4 h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -353,7 +450,12 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                   width={52}
                   fontSize={12}
                 />
-                <ReferenceArea y1={EASY_BAND.from} y2={EASY_BAND.to} fill="var(--chart-1)" fillOpacity={0.1} />
+                <ReferenceArea
+                  y1={EASY_BAND.from}
+                  y2={EASY_BAND.to}
+                  fill="var(--chart-1)"
+                  fillOpacity={0.1}
+                />
                 <ReferenceLine y={goalPace} stroke="var(--foreground)" strokeDasharray="4 4" />
                 <Tooltip
                   formatter={(value: number, name: string, item: any) => {
@@ -408,34 +510,61 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
           <div className="flex shrink-0 flex-wrap items-center gap-4">
             <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
               Show range
-              <Switch checked={showRange} onCheckedChange={setShowRange} aria-label="Show confidence range" />
+              <Switch
+                checked={showRange}
+                onCheckedChange={setShowRange}
+                aria-label="Show confidence range"
+              />
             </label>
             <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
               Effort-normalized
-              <Switch checked={effortNormalized} onCheckedChange={setEffortNormalized} aria-label="Effort-normalized pace" />
+              <Switch
+                checked={effortNormalized}
+                onCheckedChange={setEffortNormalized}
+                aria-label="Effort-normalized pace"
+              />
             </label>
           </div>
         </div>
-        <p className="-mt-3 mb-2 text-sm text-muted-foreground">Each dot is a run. Lines show your typical pace at that distance.</p>
+        <p className="-mt-3 mb-2 text-sm text-muted-foreground">
+          Each dot is a run. Lines show your typical pace at that distance.
+        </p>
         {showPaceHelp && (
           <div className="mb-4 rounded-lg bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
             <p>Longer runs are naturally slower. This compares runs of the same distance.</p>
-            <p>If the whole line moves up over time at the same distances, you're getting faster.</p>
+            <p>
+              If the whole line moves up over time at the same distances, you're getting faster.
+            </p>
           </div>
         )}
         <div className="mb-4 flex flex-wrap gap-2" aria-label="Comparison period">
-          {([
-            ["previous", "vs previous period"],
-            ["last-year", "vs same period last year"],
-            ["off", "off"],
-          ] as const).map(([key, label]) => (
-            <Button key={key} type="button" size="sm" variant={comparison === key ? "default" : "outline"} className="h-7 rounded-full px-3 text-xs" onClick={() => setComparison(key)}>
+          {(
+            [
+              ["previous", "vs previous period"],
+              ["last-year", "vs same period last year"],
+              ["off", "off"],
+            ] as const
+          ).map(([key, label]) => (
+            <Button
+              key={key}
+              type="button"
+              size="sm"
+              variant={comparison === key ? "default" : "outline"}
+              className="h-7 rounded-full px-3 text-xs"
+              onClick={() => setComparison(key)}
+            >
               {label}
             </Button>
           ))}
         </div>
-        <div className="mb-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground" aria-label="Chart key">
-          <span className="flex items-center gap-1.5"><span className="size-2.5 rotate-45 bg-chart-2" />Race</span>
+        <div
+          className="mb-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground"
+          aria-label="Chart key"
+        >
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rotate-45 bg-chart-2" />
+            Race
+          </span>
         </div>
         {currentPoints.length === 0 ? (
           <Empty>No runs in this period.</Empty>
@@ -446,56 +575,237 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
               <p>min/mile</p>
             </div>
             <div className="h-80 w-full" data-pace-distance-chart>
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart margin={{ top: 10, right: 92, bottom: 8, left: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.6} />
-                <XAxis type="number" dataKey="distance" scale="log" domain={[Math.max(0.1, minDistance / (1 + xPad)), maxDistance * (1 + xPad)]} ticks={distanceTicks} tickFormatter={(value: number) => `${value}`} tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis type="number" dataKey="pace" reversed domain={paceDomain} ticks={paceDistanceTicks} tickFormatter={(value: number) => formatPace(value).replace("/mi", "")} tickLine={false} axisLine={false} width={52} fontSize={12} />
-                <ReferenceArea y1={EASY_BAND.from} y2={EASY_BAND.to} fill="var(--chart-1)" fillOpacity={0.1} label={{ value: "Plan easy range 9:50–10:20", position: "insideTopLeft", fontSize: 11, fill: "var(--muted-foreground)" }} />
-                <ReferenceLine y={goalPace} stroke="var(--foreground)" strokeDasharray="4 4" />
-                {showRange && comparisonFit?.standardError != null && <Area data={comparisonTrend} dataKey="band" fill="var(--muted-foreground)" fillOpacity={0.1} stroke="none" isAnimationActive={false} />}
-                {showRange && currentFit?.standardError != null && <Area data={currentTrend} dataKey="band" fill="var(--chart-2)" fillOpacity={0.12} stroke="none" isAnimationActive={false} />}
-                {comparisonFit && <Line data={comparisonTrend} dataKey="pace" stroke="var(--muted-foreground)" strokeWidth={2} strokeOpacity={0.55} dot={false} isAnimationActive={false} />}
-                {currentFit && <Line data={currentTrend} dataKey="pace" stroke="var(--chart-2)" strokeWidth={2} dot={false} isAnimationActive={false} />}
-                {comparisonFit && comparisonTrendEnd != null && comparisonDates && (
-                  <ReferenceDot x={comparisonFit.maxDistance} y={comparisonTrendEnd} r={3} fill="var(--muted-foreground)" stroke="none" label={{ value: comparisonDates.label, position: "right", fontSize: 11, fill: "var(--muted-foreground)" }} />
-                )}
-                {currentFit && currentTrendEnd != null && (
-                  <ReferenceDot x={currentFit.maxDistance} y={currentTrendEnd} r={3} fill="var(--chart-2)" stroke="none" label={{ value: currentLabel, position: "right", fontSize: 11, fontWeight: 600, fill: "var(--chart-2)" }} />
-                )}
-                {showEightGuide && (
-                  <ReferenceLine x={8} stroke="var(--muted-foreground)" strokeOpacity={0.4} strokeWidth={1}
-                    label={{ value: `${(eightGap as number) >= 0 ? "+" : "−"}${Math.abs(eightGap as number)} s/mi`, position: "insideBottomRight", fontSize: 11, fill: "var(--muted-foreground)" }} />
-                )}
-                {showEightGuide && (
-                  <ReferenceDot x={8} y={comparisonEight as number} r={3.5} fill="var(--muted-foreground)" stroke="var(--background)" strokeWidth={1}
-                    label={{ value: `${formatPace(comparisonEight as number).replace("/mi", "")} before`, position: "top", fontSize: 11, fill: "var(--muted-foreground)" }} />
-                )}
-                {showEightGuide && (
-                  <ReferenceDot x={8} y={currentEight as number} r={3.5} fill="var(--chart-2)" stroke="var(--background)" strokeWidth={1}
-                    label={{ value: `${formatPace(currentEight as number).replace("/mi", "")} now`, position: "right", fontSize: 11, fontWeight: 600, fill: "var(--chart-2)" }} />
-                )}
-                <Scatter data={comparisonPoints.filter((point) => !point.race)} fill="var(--muted-foreground)" fillOpacity={0.28} shape={<SmallDot />} isAnimationActive={false} />
-                <Scatter data={comparisonPoints.filter((point) => point.race)} fill="var(--muted-foreground)" fillOpacity={0.32} shape={<RaceDot />} isAnimationActive={false} />
-                <Scatter data={currentPoints.filter((point) => !point.race)} fill="var(--chart-2)" isAnimationActive={false} />
-                <Scatter data={currentPoints.filter((point) => point.race)} fill="var(--chart-2)" shape={<RaceDot />} isAnimationActive={false} />
-                <Tooltip content={<PaceDistanceTooltip />} />
-              </ComposedChart>
-            </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart margin={{ top: 10, right: 92, bottom: 8, left: 4 }}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="var(--border)"
+                    strokeOpacity={0.6}
+                  />
+                  <XAxis
+                    type="number"
+                    dataKey="distance"
+                    scale="log"
+                    domain={[Math.max(0.1, minDistance / (1 + xPad)), maxDistance * (1 + xPad)]}
+                    ticks={distanceTicks}
+                    tickFormatter={(value: number) => `${value}`}
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                  />
+                  <YAxis
+                    type="number"
+                    dataKey="pace"
+                    reversed
+                    domain={paceDomain}
+                    ticks={paceDistanceTicks}
+                    tickFormatter={(value: number) => formatPace(value).replace("/mi", "")}
+                    tickLine={false}
+                    axisLine={false}
+                    width={52}
+                    fontSize={12}
+                  />
+                  <ReferenceArea
+                    y1={EASY_BAND.from}
+                    y2={EASY_BAND.to}
+                    fill="var(--chart-1)"
+                    fillOpacity={0.1}
+                    label={{
+                      value: "Plan easy range 9:50–10:20",
+                      position: "insideTopLeft",
+                      fontSize: 11,
+                      fill: "var(--muted-foreground)",
+                    }}
+                  />
+                  <ReferenceLine y={goalPace} stroke="var(--foreground)" strokeDasharray="4 4" />
+                  {showRange && comparisonFit?.standardError != null && (
+                    <Area
+                      data={comparisonTrend}
+                      dataKey="band"
+                      fill="var(--muted-foreground)"
+                      fillOpacity={0.1}
+                      stroke="none"
+                      isAnimationActive={false}
+                    />
+                  )}
+                  {showRange && currentFit?.standardError != null && (
+                    <Area
+                      data={currentTrend}
+                      dataKey="band"
+                      fill="var(--chart-2)"
+                      fillOpacity={0.12}
+                      stroke="none"
+                      isAnimationActive={false}
+                    />
+                  )}
+                  {comparisonFit && (
+                    <Line
+                      data={comparisonTrend}
+                      dataKey="pace"
+                      stroke="var(--muted-foreground)"
+                      strokeWidth={2}
+                      strokeOpacity={0.55}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  )}
+                  {currentFit && (
+                    <Line
+                      data={currentTrend}
+                      dataKey="pace"
+                      stroke="var(--chart-2)"
+                      strokeWidth={2}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  )}
+                  {comparisonFit && comparisonTrendEnd != null && comparisonDates && (
+                    <ReferenceDot
+                      x={comparisonFit.maxDistance}
+                      y={comparisonTrendEnd}
+                      r={3}
+                      fill="var(--muted-foreground)"
+                      stroke="none"
+                      label={{
+                        value: comparisonDates.label,
+                        position: "right",
+                        fontSize: 11,
+                        fill: "var(--muted-foreground)",
+                      }}
+                    />
+                  )}
+                  {currentFit && currentTrendEnd != null && (
+                    <ReferenceDot
+                      x={currentFit.maxDistance}
+                      y={currentTrendEnd}
+                      r={3}
+                      fill="var(--chart-2)"
+                      stroke="none"
+                      label={{
+                        value: currentLabel,
+                        position: "right",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        fill: "var(--chart-2)",
+                      }}
+                    />
+                  )}
+                  {showEightGuide && (
+                    <ReferenceLine
+                      x={8}
+                      stroke="var(--muted-foreground)"
+                      strokeOpacity={0.4}
+                      strokeWidth={1}
+                      label={{
+                        value: `${(eightGap as number) >= 0 ? "+" : "−"}${Math.abs(eightGap as number)} s/mi`,
+                        position: "insideBottomRight",
+                        fontSize: 11,
+                        fill: "var(--muted-foreground)",
+                      }}
+                    />
+                  )}
+                  {showEightGuide && (
+                    <ReferenceDot
+                      x={8}
+                      y={comparisonEight as number}
+                      r={3.5}
+                      fill="var(--muted-foreground)"
+                      stroke="var(--background)"
+                      strokeWidth={1}
+                      label={{
+                        value: `${formatPace(comparisonEight as number).replace("/mi", "")} before`,
+                        position: "top",
+                        fontSize: 11,
+                        fill: "var(--muted-foreground)",
+                      }}
+                    />
+                  )}
+                  {showEightGuide && (
+                    <ReferenceDot
+                      x={8}
+                      y={currentEight as number}
+                      r={3.5}
+                      fill="var(--chart-2)"
+                      stroke="var(--background)"
+                      strokeWidth={1}
+                      label={{
+                        value: `${formatPace(currentEight as number).replace("/mi", "")} now`,
+                        position: "right",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        fill: "var(--chart-2)",
+                      }}
+                    />
+                  )}
+                  <Scatter
+                    data={comparisonPoints.filter((point) => !point.race)}
+                    fill="var(--muted-foreground)"
+                    fillOpacity={0.28}
+                    shape={<SmallDot />}
+                    isAnimationActive={false}
+                  />
+                  <Scatter
+                    data={comparisonPoints.filter((point) => point.race)}
+                    fill="var(--muted-foreground)"
+                    fillOpacity={0.32}
+                    shape={<RaceDot />}
+                    isAnimationActive={false}
+                  />
+                  <Scatter
+                    data={currentPoints.filter((point) => !point.race)}
+                    fill="var(--chart-2)"
+                    isAnimationActive={false}
+                  />
+                  <Scatter
+                    data={currentPoints.filter((point) => point.race)}
+                    fill="var(--chart-2)"
+                    shape={<RaceDot />}
+                    isAnimationActive={false}
+                  />
+                  <Tooltip content={<PaceDistanceTooltip />} />
+                </ComposedChart>
+              </ResponsiveContainer>
             </div>
-            <p className="mt-1 text-center text-xs text-muted-foreground" aria-hidden="true">Run distance (miles)</p>
+            <p className="mt-1 text-center text-xs text-muted-foreground" aria-hidden="true">
+              Run distance (miles)
+            </p>
           </div>
         )}
         <div className="mt-3 space-y-2 text-sm">
-          {!currentFit && currentPoints.length > 0 && <p className="text-muted-foreground">Current period: not enough runs to fit a trend.</p>}
-          {comparison !== "off" && !comparisonAvailable && <p className="text-muted-foreground">Comparison hidden — fewer than 3 runs in that period.</p>}
-          {comparisonAvailable && !comparisonFit && <p className="text-muted-foreground">Comparison period: not enough runs to fit a trend.</p>}
-          {currentFit && comparisonFit && currentEight != null && comparisonEight != null && comparisonDates && (
-            <p>
-              At 8 mi, your trend pace is {formatPace(currentEight)} now vs {formatPace(comparisonEight)} in {comparisonDates.label} ({currentEight - comparisonEight >= 0 ? "+" : "−"}{Math.abs(Math.round(currentEight - comparisonEight))} s/mi). Average run distance {currentFit.averageDistance.toFixed(1)} mi vs {comparisonFit.averageDistance.toFixed(1)} mi.
+          {!currentFit && currentPoints.length > 0 && (
+            <p className="text-muted-foreground">Current period: not enough runs to fit a trend.</p>
+          )}
+          {comparison !== "off" && !comparisonAvailable && (
+            <p className="text-muted-foreground">
+              Comparison hidden — fewer than 3 runs in that period.
             </p>
           )}
-          {effortNormalized && <p className="text-muted-foreground">Assumes similar effort on every run. Easy runs will look slower, so read the trend, not the level.</p>}
+          {comparisonAvailable && !comparisonFit && (
+            <p className="text-muted-foreground">
+              Comparison period: not enough runs to fit a trend.
+            </p>
+          )}
+          {currentFit &&
+            comparisonFit &&
+            currentEight != null &&
+            comparisonEight != null &&
+            comparisonDates && (
+              <p>
+                At 8 mi, your trend pace is {formatPace(currentEight)} now vs{" "}
+                {formatPace(comparisonEight)} in {comparisonDates.label} (
+                {currentEight - comparisonEight >= 0 ? "+" : "−"}
+                {Math.abs(Math.round(currentEight - comparisonEight))} s/mi). Average run distance{" "}
+                {currentFit.averageDistance.toFixed(1)} mi vs{" "}
+                {comparisonFit.averageDistance.toFixed(1)} mi.
+              </p>
+            )}
+          {effortNormalized && (
+            <p className="text-muted-foreground">
+              Assumes similar effort on every run. Easy runs will look slower, so read the trend,
+              not the level.
+            </p>
+          )}
         </div>
         {distanceRows.length > 0 && (
           <div className="mt-4 overflow-x-auto">
@@ -512,9 +822,21 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                 {distanceRows.map((row) => (
                   <tr key={row.label} className="border-b border-border/70">
                     <th className="px-3 py-2 text-left font-medium">{row.label}</th>
-                    <td className="px-3 py-2 text-right tnum">{row.currentPace == null ? "—" : `${formatPace(row.currentPace)} · ${row.currentCount} ${row.currentCount === 1 ? "run" : "runs"}`}</td>
-                    <td className="px-3 py-2 text-right tnum">{row.comparisonPace == null ? "—" : `${formatPace(row.comparisonPace)} · ${row.comparisonCount} ${row.comparisonCount === 1 ? "run" : "runs"}`}</td>
-                    <td className="px-3 py-2 text-right tnum">{row.difference == null ? "—" : `${row.difference > 0 ? "+" : row.difference < 0 ? "−" : ""}${Math.abs(row.difference)} s/mi`}</td>
+                    <td className="px-3 py-2 text-right tnum">
+                      {row.currentPace == null
+                        ? "—"
+                        : `${formatPace(row.currentPace)} · ${row.currentCount} ${row.currentCount === 1 ? "run" : "runs"}`}
+                    </td>
+                    <td className="px-3 py-2 text-right tnum">
+                      {row.comparisonPace == null
+                        ? "—"
+                        : `${formatPace(row.comparisonPace)} · ${row.comparisonCount} ${row.comparisonCount === 1 ? "run" : "runs"}`}
+                    </td>
+                    <td className="px-3 py-2 text-right tnum">
+                      {row.difference == null
+                        ? "—"
+                        : `${row.difference > 0 ? "+" : row.difference < 0 ? "−" : ""}${Math.abs(row.difference)} s/mi`}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -527,7 +849,9 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
       <section>
         <SectionTitle>Long-run check</SectionTitle>
         {longRuns.length === 0 ? (
-          <div className="mt-4"><Empty>No long runs (10+ mi) in this period.</Empty></div>
+          <div className="mt-4">
+            <Empty>No long runs (10+ mi) in this period.</Empty>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -546,57 +870,113 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
               <tbody>
                 {longRuns.map((r) => {
                   const run = d.runs.find((item) => item.id === r.id);
-                  const rows = run?.strava_activity_id ? d.splitsByActivity.get(Number(run.strava_activity_id)) ?? [] : [];
+                  const rows = run?.strava_activity_id
+                    ? (d.splitsByActivity.get(Number(run.strava_activity_id)) ?? [])
+                    : [];
                   const detail = run ? runDetailStats(run, rows) : null;
                   const cleanAvg = detail?.cleanPace ?? null;
-                  const showCleanAvg = cleanAvg != null && r.avgPace != null && Math.abs(cleanAvg - r.avgPace) > 3;
+                  const showCleanAvg =
+                    cleanAvg != null && r.avgPace != null && Math.abs(cleanAvg - r.avgPace) > 3;
                   const rowId = r.id ?? r.date;
                   const open = expandedLongRunId === rowId;
                   const toggle = () => setExpandedLongRunId(open ? null : rowId);
                   return (
-                  <Fragment key={rowId}>
-                  <tr key={r.id ?? r.date} className={`border-t border-border ${rows.length ? "cursor-pointer" : ""}`} tabIndex={rows.length ? 0 : undefined} aria-expanded={rows.length ? open : undefined} onClick={() => rows.length && toggle()} onKeyDown={(event) => { if (rows.length && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); toggle(); } }}>
-                    <td className="whitespace-nowrap px-3 py-2">
-                      {new Date(`${r.date}T00:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-                    </td>
-                    <td className="px-3 py-2 text-right tnum">{r.miles.toFixed(1)}</td>
-                    <td className="px-3 py-2 text-right tnum">
-                      {formatPace(r.avgPace)}
-                      {showCleanAvg && <span className="block text-xs text-muted-foreground">({formatPace(cleanAvg)} excl. stops)</span>}
-                      {r.excluded > 0 && <span className="block text-xs text-muted-foreground">{r.excluded} {r.excluded === 1 ? "split" : "splits"} excluded</span>}
-                    </td>
-                    <td className="px-3 py-2 text-right tnum">{r.firstHalf == null ? "—" : formatPace(r.firstHalf)}</td>
-                    <td className="px-3 py-2 text-right tnum">
-                      {r.secondHalf == null ? "—" : formatPace(r.secondHalf)}
-                      {r.rawSecondHalf != null && r.secondHalf != null && r.rawSecondHalf !== r.secondHalf && (
-                        <span className="ml-1 text-xs text-muted-foreground">
-                          ({formatPace(r.rawSecondHalf)} with stop)
-                        </span>
+                    <Fragment key={rowId}>
+                      <tr
+                        key={r.id ?? r.date}
+                        className={`border-t border-border ${rows.length ? "cursor-pointer" : ""}`}
+                        tabIndex={rows.length ? 0 : undefined}
+                        aria-expanded={rows.length ? open : undefined}
+                        onClick={() => rows.length && toggle()}
+                        onKeyDown={(event) => {
+                          if (rows.length && (event.key === "Enter" || event.key === " ")) {
+                            event.preventDefault();
+                            toggle();
+                          }
+                        }}
+                      >
+                        <td className="whitespace-nowrap px-3 py-2">
+                          {new Date(`${r.date}T00:00:00`).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </td>
+                        <td className="px-3 py-2 text-right tnum">{r.miles.toFixed(1)}</td>
+                        <td className="px-3 py-2 text-right tnum">
+                          {formatPace(r.avgPace)}
+                          {showCleanAvg && (
+                            <span className="block text-xs text-muted-foreground">
+                              ({formatPace(cleanAvg)} excl. stops)
+                            </span>
+                          )}
+                          {r.excluded > 0 && (
+                            <span className="block text-xs text-muted-foreground">
+                              {r.excluded} {r.excluded === 1 ? "split" : "splits"} excluded
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-right tnum">
+                          {r.firstHalf == null ? "—" : formatPace(r.firstHalf)}
+                        </td>
+                        <td className="px-3 py-2 text-right tnum">
+                          {r.secondHalf == null ? "—" : formatPace(r.secondHalf)}
+                          {r.rawSecondHalf != null &&
+                            r.secondHalf != null &&
+                            r.rawSecondHalf !== r.secondHalf && (
+                              <span className="ml-1 text-xs text-muted-foreground">
+                                ({formatPace(r.rawSecondHalf)} with stop)
+                              </span>
+                            )}
+                        </td>
+                        <td className="px-3 py-2 text-right tnum">
+                          {r.diff == null ? "—" : `${r.diff > 0 ? "+" : ""}${r.diff}s`}
+                        </td>
+                        <td className="px-3 py-2 text-right tnum">
+                          {r.slowestMile == null ? "—" : formatPace(r.slowestMile)}
+                        </td>
+                        <td className="px-3 py-2">
+                          {r.verdict === "faded" && (
+                            <span className="rounded-full bg-caution px-2 py-0.5 text-xs font-semibold text-caution-foreground">
+                              Faded
+                            </span>
+                          )}
+                          {r.verdict === "negative" && (
+                            <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success-emphasis">
+                              Negative split
+                            </span>
+                          )}
+                          {r.verdict === "even" && (
+                            <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success-emphasis">
+                              Even
+                            </span>
+                          )}
+                          {run && rows.length > 0 && (
+                            <RunMileDetail
+                              run={run}
+                              rows={rows}
+                              open={false}
+                              onToggle={toggle}
+                              labelledBy={`long-${r.id}`}
+                            />
+                          )}
+                        </td>
+                      </tr>
+                      {open && run && rows.length > 0 && (
+                        <tr className="border-t border-border">
+                          <td colSpan={8} className="px-3 pb-4">
+                            <RunMileDetail
+                              run={run}
+                              rows={rows}
+                              open
+                              onToggle={toggle}
+                              labelledBy={`long-${r.id}`}
+                              showToggle={false}
+                            />
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                    <td className="px-3 py-2 text-right tnum">
-                      {r.diff == null ? "—" : `${r.diff > 0 ? "+" : ""}${r.diff}s`}
-                    </td>
-                    <td className="px-3 py-2 text-right tnum">{r.slowestMile == null ? "—" : formatPace(r.slowestMile)}</td>
-                    <td className="px-3 py-2">
-                      {r.verdict === "faded" && (
-                        <span className="rounded-full bg-caution px-2 py-0.5 text-xs font-semibold text-caution-foreground">Faded</span>
-                      )}
-                      {r.verdict === "negative" && (
-                        <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success-emphasis">
-                          Negative split
-                        </span>
-                      )}
-                      {r.verdict === "even" && (
-                        <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success-emphasis">
-                          Even
-                        </span>
-                      )}
-                      {run && rows.length > 0 && <RunMileDetail run={run} rows={rows} open={false} onToggle={toggle} labelledBy={`long-${r.id}`} />}
-                    </td>
-                  </tr>
-                  {open && run && rows.length > 0 && <tr className="border-t border-border"><td colSpan={8} className="px-3 pb-4"><RunMileDetail run={run} rows={rows} open onToggle={toggle} labelledBy={`long-${r.id}`} showToggle={false} /></td></tr>}
-                  </Fragment>
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -617,14 +997,28 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
       <section>
         <SectionTitle>Pace distribution</SectionTitle>
         {buckets.length === 0 ? (
-          <div className="mt-4"><Empty>No per-mile splits in this period.</Empty></div>
+          <div className="mt-4">
+            <Empty>No per-mile splits in this period.</Empty>
+          </div>
         ) : (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={buckets} margin={{ top: 10, right: 12, bottom: 0, left: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} interval="preserveStartEnd" />
-                <YAxis tickLine={false} axisLine={false} width={36} fontSize={12} allowDecimals={false} />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={11}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  width={36}
+                  fontSize={12}
+                  allowDecimals={false}
+                />
                 <Tooltip
                   formatter={(v: number) => [`${v} mi`, "Miles"]}
                   labelFormatter={(l) => `${l}/mi`}
@@ -650,7 +1044,9 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
       <section>
         <SectionTitle>Zone mix</SectionTitle>
         {miles.length === 0 ? (
-          <div className="mt-4"><Empty>No per-mile splits in this period.</Empty></div>
+          <div className="mt-4">
+            <Empty>No per-mile splits in this period.</Empty>
+          </div>
         ) : (
           <>
             <div className="flex h-6 w-full overflow-hidden rounded-full">
@@ -687,16 +1083,27 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
       <section>
         <SectionTitle>Best efforts</SectionTitle>
         {efforts.every((e) => !e) ? (
-          <div className="mt-4"><Empty>No per-mile splits in this period.</Empty></div>
+          <div className="mt-4">
+            <Empty>No per-mile splits in this period.</Empty>
+          </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-3">
             {efforts.map((e, i) =>
               e ? (
                 <div key={e.label} className="surface-card p-4">
-                  <p className="text-xs uppercase tracking-widest text-muted-foreground">{e.label}</p>
-                  <p className="stat-figure text-2xl font-semibold tnum">{formatClock(e.seconds)}</p>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                    {e.label}
+                  </p>
+                  <p className="stat-figure text-2xl font-semibold tnum">
+                    {formatClock(e.seconds)}
+                  </p>
                   <p className="text-sm text-muted-foreground tnum">
-                    {formatPace(e.pace)} · {new Date(`${e.date}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    {formatPace(e.pace)} ·{" "}
+                    {new Date(`${e.date}T00:00:00`).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </p>
                 </div>
               ) : (
@@ -720,7 +1127,9 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
       <section>
         <SectionTitle>Predicted finish over time</SectionTitle>
         {predTrend.length === 0 ? (
-          <div className="mt-4"><Empty>Not enough data to predict a finish in this period.</Empty></div>
+          <div className="mt-4">
+            <Empty>Not enough data to predict a finish in this period.</Empty>
+          </div>
         ) : (
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -730,13 +1139,21 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                 <YAxis
                   domain={predDomain}
                   ticks={predTicks}
-                  tickFormatter={(v: number) => `${Math.floor(v / 3600)}:${String(Math.floor((v % 3600) / 60)).padStart(2, "0")}`}
+                  tickFormatter={(v: number) =>
+                    `${Math.floor(v / 3600)}:${String(Math.floor((v % 3600) / 60)).padStart(2, "0")}`
+                  }
                   tickLine={false}
                   axisLine={false}
                   width={64}
                   fontSize={12}
                 />
-                <Area dataKey="band" stroke="none" fill="var(--chart-2)" fillOpacity={0.15} isAnimationActive={false} />
+                <Area
+                  dataKey="band"
+                  stroke="none"
+                  fill="var(--chart-2)"
+                  fillOpacity={0.15}
+                  isAnimationActive={false}
+                />
                 <Line
                   type="monotone"
                   dataKey="seconds"
@@ -746,10 +1163,18 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                   isAnimationActive={false}
                 />
                 {targetSeconds && (
-                  <ReferenceLine y={targetSeconds} stroke="var(--foreground)" strokeDasharray="6 4" />
+                  <ReferenceLine
+                    y={targetSeconds}
+                    stroke="var(--foreground)"
+                    strokeDasharray="6 4"
+                  />
                 )}
                 {d.predictedSeconds && (
-                  <ReferenceLine y={d.predictedSeconds} stroke="var(--muted-foreground)" strokeDasharray="2 4" />
+                  <ReferenceLine
+                    y={d.predictedSeconds}
+                    stroke="var(--muted-foreground)"
+                    strokeDasharray="2 4"
+                  />
                 )}
                 <Tooltip
                   content={({ active, payload }: any) => {
@@ -758,9 +1183,13 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                     return (
                       <div className="rounded-xl border border-border bg-popover p-3 text-xs shadow-md">
                         <p className="font-semibold">Week of {p.label}</p>
-                        <p className="tnum">{formatDuration(p.seconds)} · {formatDuration(p.low)}–{formatDuration(p.high)}</p>
+                        <p className="tnum">
+                          {formatDuration(p.seconds)} · {formatDuration(p.low)}–
+                          {formatDuration(p.high)}
+                        </p>
                         <p className="mt-1 text-muted-foreground tnum">
-                          {p.basis.effort} {formatPace(p.basis.pace)} · longest {p.basis.longestMi} mi · {p.basis.weeklyMi} mi/week
+                          {p.basis.effort} {formatPace(p.basis.pace)} · longest {p.basis.longestMi}{" "}
+                          mi · {p.basis.weeklyMi} mi/week
                         </p>
                       </div>
                     );
@@ -771,7 +1200,10 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
           </div>
         )}
         <p className="mt-2 text-xs text-muted-foreground">
-          Dashed line: 4:15:00 target{d.predictedSeconds ? ` · dotted line: ${formatDuration(d.predictedSeconds)} from your recent race` : ""}
+          Dashed line: 4:15:00 target
+          {d.predictedSeconds
+            ? ` · dotted line: ${formatDuration(d.predictedSeconds)} from your recent race`
+            : ""}
         </p>
       </section>
     </div>
@@ -786,21 +1218,34 @@ export function TrainingPrediction({ d, compact = false }: { d: Dashboard; compa
   );
 
   if (!prediction) {
-    return <p className="text-sm text-muted-foreground">Not enough recent splits to predict a finish yet.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        Not enough recent splits to predict a finish yet.
+      </p>
+    );
   }
 
   const { basis } = prediction;
   return (
     <div className={compact ? "" : "surface-card p-5"}>
-      {compact && <p className="text-xs uppercase tracking-widest text-muted-foreground">Predicted from training</p>}
-      <p className="stat-figure text-3xl font-semibold tnum">{formatDuration(prediction.seconds)}</p>
+      {compact && (
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+          Predicted from training
+        </p>
+      )}
+      <p className="stat-figure text-3xl font-semibold tnum">
+        {formatDuration(prediction.seconds)}
+      </p>
       <p className="text-sm text-muted-foreground tnum">
         {formatDuration(prediction.low)}–{formatDuration(prediction.high)} range
       </p>
       <p className="mt-2 text-xs text-muted-foreground">
         Based on: {basis.effort} {formatPace(basis.pace)} on{" "}
-        {new Date(`${basis.date}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })} ·
-        longest run {basis.longestMi} mi · {basis.weeklyMi} mi/week
+        {new Date(`${basis.date}T00:00:00`).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })}{" "}
+        · longest run {basis.longestMi} mi · {basis.weeklyMi} mi/week
       </p>
     </div>
   );

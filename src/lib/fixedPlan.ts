@@ -1,13 +1,7 @@
 // Helpers that turn fixed plan_days rows into the shapes the UI already speaks.
 
 import type { PlanDayRow } from "./data";
-import {
-  DAY_NAMES,
-  isoDate,
-  type PlanDay,
-  type TodayRange,
-  type Zone,
-} from "./training";
+import { DAY_NAMES, isoDate, type PlanDay, type TodayRange, type Zone } from "./training";
 
 export const TYPE_LABEL: Record<string, string> = {
   easy: "Easy Run",
@@ -103,7 +97,10 @@ export function fixedTodayRange(
     };
   }
 
-  const painSharp = !!row && !!checkin?.pain_note && /sharp|worse|worsening|stab|localis|localiz/i.test(checkin.pain_note);
+  const painSharp =
+    !!row &&
+    !!checkin?.pain_note &&
+    /sharp|worse|worsening|stab|localis|localiz/i.test(checkin.pain_note);
   const legs = checkin?.leg_feel ?? null;
   const sleep = checkin?.sleep_quality ?? null;
   const whoop = checkin?.whoop_recovery_pct ?? null;
@@ -156,7 +153,10 @@ export function fixedTodayRange(
       headlineMi: 0,
       zoneKey: "easy",
       zoneLabel: zoneName("easy"),
-      reason: whoop != null && whoop < 34 ? `WHOOP recovery at ${whoop}% — rest or use the minimum only.` : "Check-in is at 1/5 — rest is the productive choice today.",
+      reason:
+        whoop != null && whoop < 34
+          ? `WHOOP recovery at ${whoop}% — rest or use the minimum only.`
+          : "Check-in is at 1/5 — rest is the productive choice today.",
       weekLimit: 0,
     };
   }

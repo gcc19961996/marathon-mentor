@@ -167,7 +167,13 @@ export function paceZones(mp: number, fitnessMp?: number | null): Zone[] {
       to: mp + 75,
       note: "Steady and controlled — 30 to 75 seconds slower than marathon pace.",
     },
-    { key: "mp", name: "Marathon pace", from: mp, to: mp, note: "Race rehearsal pace, from your target." },
+    {
+      key: "mp",
+      name: "Marathon pace",
+      from: mp,
+      to: mp,
+      note: "Race rehearsal pace, from your target.",
+    },
     {
       key: "tempo",
       name: "Tempo / threshold",
@@ -252,9 +258,13 @@ export function splitTable(targetSeconds: number): SplitRow[] {
       distanceMi: mi,
       even: cumulativeTimeAt(mi, targetSeconds, false),
       // NYC strategy is deliberately conservative: never bank time before 30K.
-      adjusted: k <= 30
-        ? Math.max(cumulativeTimeAt(mi, targetSeconds, true), cumulativeTimeAt(mi, targetSeconds, false))
-        : cumulativeTimeAt(mi, targetSeconds, true),
+      adjusted:
+        k <= 30
+          ? Math.max(
+              cumulativeTimeAt(mi, targetSeconds, true),
+              cumulativeTimeAt(mi, targetSeconds, false),
+            )
+          : cumulativeTimeAt(mi, targetSeconds, true),
     });
     if (k === 20) {
       rows.push({
@@ -430,7 +440,11 @@ export function computeTodayRange(input: TodayInput): TodayRange {
   const plannedType = (planned?.type ?? "Easy Run") as WorkoutType;
   const plannedDist = planned?.distance_mi ?? 0;
 
-  let zoneKey = HARD_TYPES.includes(plannedType) ? (plannedType === "Long Run" ? "long" : "mp") : "easy";
+  let zoneKey = HARD_TYPES.includes(plannedType)
+    ? plannedType === "Long Run"
+      ? "long"
+      : "mp"
+    : "easy";
   if (plannedType === "Tempo") zoneKey = "tempo";
   if (plannedType === "Strides") zoneKey = "strides";
   if (plannedType === "Marathon-Pace Run") zoneKey = "mp";
@@ -656,7 +670,7 @@ export function validatePlan(
       adjustments.push(`Long run moved to ${opts.longRunDay} to match your settings.`);
     } else if (currentIdx === -1) {
       out[wantedIdx] = {
-        ...(out[wantedIdx] ?? { day: DAY_NAMES[wantedIdx]! , type: "Long Run" }),
+        ...(out[wantedIdx] ?? { day: DAY_NAMES[wantedIdx]!, type: "Long Run" }),
         day: DAY_NAMES[wantedIdx]!,
         type: "Long Run",
         pace_zone: "Long run",
@@ -721,7 +735,8 @@ export function validatePlan(
     if (others > 0 && room > 0.5) {
       const scale = room / others;
       for (const d of out) {
-        if (d !== longRun && d.distance_mi) d.distance_mi = Math.round(d.distance_mi * scale * 10) / 10;
+        if (d !== longRun && d.distance_mi)
+          d.distance_mi = Math.round(d.distance_mi * scale * 10) / 10;
       }
     } else {
       const scale = opts.limitMi / total;
@@ -746,7 +761,9 @@ export function validatePlan(
           `Long run held at ${capped} mi rather than ${target} mi${label} — taper and long-run limits come first.`,
         );
       } else {
-        adjustments.push(`Long run set to ${capped} mi to build towards your next milestone${label}.`);
+        adjustments.push(
+          `Long run set to ${capped} mi to build towards your next milestone${label}.`,
+        );
       }
       longRun.distance_mi = capped;
       longRun.why = `Builds towards your next milestone${label}.`;
@@ -787,7 +804,10 @@ export function suggestedCeiling(input: CeilingInput): Ceiling {
 
   // Taper and race week come straight off peak mileage.
   if (input.raceWeekDate && input.weekStart >= input.raceWeekDate) {
-    return { mi: round(input.peakMi * 0.4), reason: `race week — 40% of your ${round(input.peakMi)} mi peak` };
+    return {
+      mi: round(input.peakMi * 0.4),
+      reason: `race week — 40% of your ${round(input.peakMi)} mi peak`,
+    };
   }
   if (input.taperDate && input.weekStart >= input.taperDate) {
     const idx = Math.floor(
@@ -843,5 +863,11 @@ export const FIXED_ZONES: Zone[] = [
   { key: "mp", name: "Marathon pace", from: 584, to: 584, note: "From the 4:15:00 target." },
   { key: "tempo", name: "Tempo", from: 505, to: 515, note: "Comfortably hard." },
   { key: "strides", name: "Strides", from: 0, to: 0, note: "20 sec fast, relaxed." },
-  { key: "altitude", name: "Altitude (Jackson)", from: 615, to: 660, note: "Run by effort; no pace warnings." },
+  {
+    key: "altitude",
+    name: "Altitude (Jackson)",
+    from: 615,
+    to: 660,
+    note: "Run by effort; no pace warnings.",
+  },
 ];

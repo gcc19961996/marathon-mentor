@@ -12,9 +12,7 @@ export const DONE_FRACTION = 0.75;
 export const MATCH_WINDOW_DAYS = 2;
 
 export function dayDiff(a: string, b: string): number {
-  return Math.round(
-    (Date.parse(`${a}T00:00:00`) - Date.parse(`${b}T00:00:00`)) / 86400000,
-  );
+  return Math.round((Date.parse(`${a}T00:00:00`) - Date.parse(`${b}T00:00:00`)) / 86400000);
 }
 
 export type PlanMatch = {

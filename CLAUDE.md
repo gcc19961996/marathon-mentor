@@ -17,9 +17,12 @@ Use **bun** for installs (the lockfile is `bun.lock`); scripts run on Node.
 - `bun install` · `bun run dev` (http://localhost:8080) · `bun run build` · `bun run lint`
 - Tests: `bun run test` (Vitest, `src/**/*.test.ts`; pure functions only, no database)
 - Type check: `node node_modules/typescript/bin/tsc --noEmit`
-- Apply migrations: `npx supabase db push --db-url "$SUPABASE_DB_URL"` (value from `.env.local`)
-- Load a backup: `bun --env-file=.env.local scripts/import-backup.ts backups/<file>.json [--yes]`
-  (empties all app tables first; without `--yes` it is a dry run)
+- Apply migrations: `npx supabase db push --db-url "$SUPABASE_DB_URL"` with the value from the env
+  file for the target (practice: `.env.local`, live: `.env.production.local`)
+- Refresh practice data from live: `bun --env-file=.env.production.local scripts/export-backup.ts`,
+  then `bun --env-file=.env.local scripts/import-backup.ts backups/<file>.json --yes`
+  (import empties all app tables first; without `--yes` it is a dry run; the live project also
+  needs `--live`)
 
 ## How it works
 - **Access:** no accounts. `PasscodeGate` exchanges `APP_PASSCODE` (owner) or `VIEWER_PASSCODE`
@@ -50,9 +53,10 @@ Use **bun** for installs (the lockfile is `bun.lock`); scripts run on Node.
   read 4:21:22 on 2026-09-30. Run log totals must not move unless a change intends it.
 
 ## Environment
-Names are listed in `.env.example`. Local values live in `.env.local` (gitignored).
-**Local dev currently points at the live database** — don't write test data locally until a
-separate practice Supabase project is set up and `.env.local` points at it.
+Names are listed in `.env.example`. `.env.local` points at the **practice** Supabase project
+(`marathon-mentor-dev`, ref `bdos…`); local dev (`dev` launch config) uses it, so testing never
+touches live data. `.env.production.local` holds the live values (same as Vercel); the
+`dev-live-readonly` launch config uses them for read-only checks only. Both files are gitignored.
 
 ## Deploy
 - Live site: https://marathon-mentor-nine.vercel.app (Vercel project `gc-1996/marathon-mentor`).

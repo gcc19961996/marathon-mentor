@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { streamText } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 
 const ContextSchema = z.object({
@@ -84,10 +84,26 @@ async function runModel(system: string, prompt: string) {
   const key = process.env["GEMINI_API_KEY"];
   if (!key) throw new Error("AI is not configured yet.");
   await enforceDailyLimit();
-  const { createGeminiProvider, TRAINING_MODEL } = await import("./ai-gateway.server");
+  const { createGeminiProvider, TRAINING_MODEL, FALLBACK_MODELS } =
+    await import("./ai-gateway.server");
   const gemini = createGeminiProvider(key);
-  const result = streamText({ model: gemini(TRAINING_MODEL), system, prompt });
-  return await result.text;
+  let lastError: unknown = null;
+  for (const model of [TRAINING_MODEL, ...FALLBACK_MODELS]) {
+    try {
+      const { text } = await generateText({ model: gemini(model), system, prompt, maxRetries: 1 });
+      return text;
+    } catch (err) {
+      lastError = err;
+      const status =
+        (err as { statusCode?: number; lastError?: { statusCode?: number } })?.lastError
+          ?.statusCode ?? (err as { statusCode?: number })?.statusCode;
+      const busy =
+        status === 503 || status === 429 || /unavailable|too many requests/i.test(String(err));
+      if (!busy) break;
+    }
+  }
+  console.error("[ai] all models failed", lastError);
+  throw new Error("Gemini is busy right now. Try again in a minute.");
 }
 
 // At most one question every 10 seconds, on top of the daily cap.

@@ -5,7 +5,8 @@
 //   bun --env-file=.env.local scripts/import-backup.ts backups/marathon-backup-YYYY-MM-DD.json
 //   bun --env-file=.env.local scripts/import-backup.ts backups/marathon-backup-YYYY-MM-DD.json --yes
 //
-// Without --yes it only reports what it would do.
+// Without --yes it only reports what it would do. The live database also needs --live
+// (use --env-file=.env.production.local for it).
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
@@ -43,6 +44,11 @@ if (!url || !key || url.includes("FILL_IN") || key.includes("FILL_IN")) {
   console.error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env.local.");
   process.exit(1);
 }
+// The live project. Replacing it needs an explicit --live on top of --yes.
+if (url.includes("mgtiopgvnrslbfiishdw") && !process.argv.includes("--live")) {
+  console.error("This is the LIVE database. Add --live to confirm you mean to replace it.");
+  process.exit(1);
+}
 if (url.includes("rbojbxptqrlwyqlrlyns")) {
   console.error(
     "Refusing to import into the Lovable database. Point .env.local at the new project.",
@@ -51,11 +57,10 @@ if (url.includes("rbojbxptqrlwyqlrlyns")) {
 }
 
 const backup = JSON.parse(readFileSync(file, "utf8")) as Backup;
+// Backups made before a table existed simply have no rows for it.
 const missing = TABLES.filter((t) => !Array.isArray(backup.tables[t]));
-if (missing.length) {
-  console.error(`Backup is missing tables: ${missing.join(", ")}`);
-  process.exit(1);
-}
+for (const t of missing) backup.tables[t] = [];
+if (missing.length) console.log(`Not in this backup (left empty): ${missing.join(", ")}`);
 
 console.log(`Backup exported ${backup.exportedAt}`);
 console.log(`Target database ${new URL(url).host}`);

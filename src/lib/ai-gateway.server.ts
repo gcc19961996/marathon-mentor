@@ -12,6 +12,10 @@ export function createGeminiProvider(apiKey: string) {
 // Same model the app used on Lovable (served there as "google/gemini-3.8-flash").
 export const TRAINING_MODEL = process.env["GEMINI_MODEL"] || "gemini-3.8-flash";
 
+// Tried in order when the one before is overloaded (503) or rate limited (429);
+// the free tier hits both at busy times.
+export const FALLBACK_MODELS = ["gemini-3.7-flash"];
+
 export const TRAINING_RULES = `Training rules you must respect:
 - Treat the fixed plan as authoritative. Never invent, regenerate, or move planned workouts; suggestions may only scale today's work down.
 - Never make up missed miles. Drop an easy run before compromising a long run.

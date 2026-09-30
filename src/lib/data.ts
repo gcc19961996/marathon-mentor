@@ -302,8 +302,6 @@ export function useSaveQuestion(userId?: string) {
   });
 }
 
-/* ---------- recent plans (for the Monday recap and long-run rule) ---------- */
-
 /* ---------- bulk run import ---------- */
 
 export function useAddRuns(userId?: string) {

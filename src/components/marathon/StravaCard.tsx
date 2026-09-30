@@ -62,11 +62,9 @@ export function StravaCard() {
   }
 
   return (
-    <section className="space-y-3">
-      <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-        Strava
-      </h3>
-      <div className="rounded-lg border border-border p-4">
+    <section className="surface-card space-y-3 p-5">
+      <h3 className="section-kicker">Strava</h3>
+      <div>
         <div className="flex items-center gap-2">
           <Activity className="size-5 text-primary" aria-hidden />
           <p className="font-medium">Strava sync</p>

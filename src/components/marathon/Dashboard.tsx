@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   CalendarDays,
   ChartNoAxesCombined,
@@ -21,11 +21,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SetupScreen } from "./SetupScreen";
 import { WeeklyPlanTab } from "./WeeklyPlanTab";
-import { ProgressTab } from "./ProgressTab";
-import { RaceDayTab } from "./RaceDayTab";
-import { PaceAnalysisTab } from "./PaceAnalysisTab";
 
 import { SettingsPanel } from "./SettingsPanel";
+
+// Only the Weekly Plan loads up front; the other tabs (and the chart library)
+// download the first time they are opened.
+const ProgressTab = lazy(() => import("./ProgressTab").then((m) => ({ default: m.ProgressTab })));
+const PaceAnalysisTab = lazy(() =>
+  import("./PaceAnalysisTab").then((m) => ({ default: m.PaceAnalysisTab })),
+);
+const RaceDayTab = lazy(() => import("./RaceDayTab").then((m) => ({ default: m.RaceDayTab })));
+
+function TabLoading() {
+  return <p className="py-10 text-center text-sm text-muted-foreground">Loading…</p>;
+}
 import { useDashboard } from "@/lib/dashboard";
 import { relativeTime, useStravaAutoSync, useStravaStatus } from "@/lib/strava";
 import { clearDeviceToken } from "@/lib/deviceToken";
@@ -268,14 +277,20 @@ export function Dashboard({ role = "owner" }: { role?: "owner" | "viewer" }) {
             />
           </TabsContent>
           <TabsContent value="progress" className="mt-0">
-            <ProgressTab d={d} prefillRun={prefillRun} />
+            <Suspense fallback={<TabLoading />}>
+              <ProgressTab d={d} prefillRun={prefillRun} />
+            </Suspense>
           </TabsContent>
           <TabsContent value="pace" className="mt-0">
-            <PaceAnalysisTab d={d} />
+            <Suspense fallback={<TabLoading />}>
+              <PaceAnalysisTab d={d} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="raceday" className="mt-0">
-            <RaceDayTab d={d} />
+            <Suspense fallback={<TabLoading />}>
+              <RaceDayTab d={d} />
+            </Suspense>
           </TabsContent>
         </div>
       </main>

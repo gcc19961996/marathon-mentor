@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { Dashboard } from "@/lib/dashboard";
 import { formatPace } from "@/lib/training";
 import { Collapsible, FuelingNotes, PlanRules, Splits, TargetSummary } from "./ProgressTab";
-import { TrainingPrediction } from "./PaceAnalysisTab";
+import { TrainingPrediction } from "./TrainingPrediction";
 
 const CHECKPOINT_DATE = "2026-09-29";
 

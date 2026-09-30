@@ -250,8 +250,11 @@ function SettingsForm({ d }: { d: Dashboard }) {
 
 export function SettingsPanel({ d }: { d: Dashboard }) {
   return (
-    <div className="space-y-6">
-      <SettingsForm d={d} />
+    <div className="space-y-5">
+      <section className="surface-card p-5">
+        <h3 className="section-kicker mb-4">Race &amp; profile</h3>
+        <SettingsForm d={d} />
+      </section>
       <StravaCard />
       <SafetyNet d={d} />
     </div>
@@ -289,11 +292,9 @@ function SafetyNet({ d }: { d: Dashboard }) {
   }
 
   return (
-    <section className="space-y-6">
-      <div>
-        <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          Plan change log
-        </h3>
+    <div className="space-y-5">
+      <section className="surface-card p-5">
+        <h3 className="section-kicker">Plan change log</h3>
         {(changes.data ?? []).length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">No changes yet.</p>
         ) : (
@@ -309,12 +310,10 @@ function SafetyNet({ d }: { d: Dashboard }) {
             ))}
           </ul>
         )}
-      </div>
+      </section>
 
-      <div>
-        <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          Reset plan
-        </h3>
+      <section className="surface-card p-5">
+        <h3 className="section-kicker">Reset plan</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           Puts every day back to the original plan. Your logged runs stay exactly as they are.
         </p>
@@ -337,12 +336,10 @@ function SafetyNet({ d }: { d: Dashboard }) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
+      </section>
 
-      <div>
-        <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          Backup
-        </h3>
+      <section className="surface-card p-5">
+        <h3 className="section-kicker">Backup</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           Download everything — runs, plan, check-ins, milestones and settings — as a dated file you
           can keep or restore from.
@@ -350,12 +347,10 @@ function SafetyNet({ d }: { d: Dashboard }) {
         <Button className="mt-3 h-9 rounded-md" variant="secondary" onClick={downloadBackup}>
           Download backup (JSON)
         </Button>
-      </div>
+      </section>
 
-      <div>
-        <h3 className="font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          Device
-        </h3>
+      <section className="surface-card p-5">
+        <h3 className="section-kicker">Device</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           This device is remembered for 90 days. Lock it to require the passcode again.
         </p>
@@ -369,7 +364,7 @@ function SafetyNet({ d }: { d: Dashboard }) {
         >
           Lock this device
         </Button>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

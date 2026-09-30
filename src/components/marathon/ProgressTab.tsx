@@ -56,6 +56,9 @@ import {
   startOfWeek,
 } from "@/lib/training";
 
+// Grows a small control's touch area to ~44px tall without changing how it looks.
+const TAP = "relative after:absolute after:-inset-x-2 after:-inset-y-3 after:content-['']";
+
 export function ProgressTab({ d, prefillRun = 0 }: { d: Dashboard; prefillRun?: number }) {
   return (
     <div className="space-y-6">
@@ -353,10 +356,14 @@ function RunChips({ chips }: { chips: { label: string; warning?: boolean; toolti
       {hidden.length > 0 && !expanded && (
         <button
           type="button"
-          className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold"
+          className={`shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold ${TAP}`}
           title={hidden.map((chip) => chip.tooltip ?? chip.label).join(" · ")}
           aria-label={`Show ${hidden.length} more labels`}
-          onClick={() => setExpanded(true)}
+          onClick={(event) => {
+            // The chip sits inside a clickable run row; do not also open mile detail.
+            event.stopPropagation();
+            setExpanded(true);
+          }}
         >
           +{hidden.length}
         </button>
@@ -364,8 +371,11 @@ function RunChips({ chips }: { chips: { label: string; warning?: boolean; toolti
       {expanded && hidden.length > 0 && (
         <button
           type="button"
-          className="text-xs text-muted-foreground underline"
-          onClick={() => setExpanded(false)}
+          className={`text-xs text-muted-foreground underline ${TAP}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            setExpanded(false);
+          }}
         >
           Less
         </button>
@@ -660,9 +670,7 @@ function StravaRow() {
 export function Collapsible({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <details className="group">
-      <summary className="cursor-pointer font-display text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-        {title}
-      </summary>
+      <summary className="section-kicker cursor-pointer">{title}</summary>
       <div className="mt-4">{children}</div>
     </details>
   );

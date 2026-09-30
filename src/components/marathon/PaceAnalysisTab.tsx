@@ -1,4 +1,5 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import {
   Area,
   Bar,
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import type { Dashboard } from "@/lib/dashboard";
 import { RunMileDetail, runDetailStats } from "@/components/marathon/RunMileDetail";
+import { TrainingPrediction } from "@/components/marathon/TrainingPrediction";
 import { EFFORT_BANDS } from "@/lib/effort";
 import { formatDuration, formatPace } from "@/lib/training";
 import {
@@ -71,6 +73,55 @@ function Empty({ children }: { children: React.ReactNode }) {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h3 className="section-kicker mb-4">{children}</h3>;
+}
+
+/** Open on desktop; folded on phones so the tab opens on the takeaway. */
+function useFoldedOnPhone(): [boolean, () => void] {
+  const [open, setOpen] = useState(true);
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 767px)").matches) setOpen(false);
+  }, []);
+  return [open, () => setOpen((o) => !o)];
+}
+
+function FoldToggle({
+  open,
+  onToggle,
+  children,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      className="inline-flex min-h-11 items-center gap-2 text-left md:pointer-events-none md:min-h-0"
+      aria-expanded={open}
+      onClick={onToggle}
+    >
+      {children}
+      <ChevronDown
+        className={`size-4 transition-transform md:hidden ${open ? "rotate-180" : ""}`}
+        aria-hidden
+      />
+    </button>
+  );
+}
+
+/** A Pace Analysis section that folds on phones; folded content is not rendered. */
+function Fold({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, toggle] = useFoldedOnPhone();
+  return (
+    <section>
+      <h3 className={`section-kicker ${open ? "mb-4" : ""}`}>
+        <FoldToggle open={open} onToggle={toggle}>
+          {title}
+        </FoldToggle>
+      </h3>
+      {open && children}
+    </section>
+  );
 }
 
 function paceDifference(seconds: number): string {
@@ -136,6 +187,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
   const [effortNormalized, setEffortNormalized] = useState(false);
   const [showRange, setShowRange] = useState(false);
   const [showPaceHelp, setShowPaceHelp] = useState(false);
+  const [paceVsDistanceOpen, togglePaceVsDistance] = useFoldedOnPhone();
 
   const from = rangeStart(d.today, range);
   const runs = useMemo(() => inRange(d.runs, from, d.today), [d.runs, from, d.today]);
@@ -415,8 +467,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
       </section>
 
       {/* pace trend */}
-      <section>
-        <SectionTitle>Pace trend by run type</SectionTitle>
+      <Fold title="Pace trend by run type">
         <div className="flex flex-wrap gap-2">
           {TREND_TYPES.map((t) => {
             const on = types.includes(t);
@@ -491,27 +542,31 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
               No {t === "All runs" ? "runs" : `${t.toLowerCase()} runs`} in this period
             </p>
           ))}
-      </section>
+      </Fold>
 
       {/* pace vs distance */}
       <section>
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-center sm:justify-between">
           <SectionTitle>
             <span className="inline-flex items-center gap-2">
-              Pace vs distance
+              <FoldToggle open={paceVsDistanceOpen} onToggle={togglePaceVsDistance}>
+                Pace vs distance
+              </FoldToggle>
               <button
                 type="button"
                 onClick={() => setShowPaceHelp((v) => !v)}
                 aria-expanded={showPaceHelp}
                 aria-label="How to read this chart"
-                className="inline-flex size-5 items-center justify-center rounded-full border border-border text-[11px] font-semibold text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="relative inline-flex size-5 items-center justify-center rounded-full border border-border text-[11px] font-semibold text-muted-foreground after:absolute after:-inset-3 after:content-[''] hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 ?
               </button>
             </span>
           </SectionTitle>
-          <div className="flex shrink-0 flex-wrap items-center gap-4">
-            <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <div
+            className={`flex shrink-0 flex-wrap items-center gap-4 ${paceVsDistanceOpen ? "" : "hidden"}`}
+          >
+            <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
               Show range
               <Switch
                 checked={showRange}
@@ -519,7 +574,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                 aria-label="Show confidence range"
               />
             </label>
-            <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-medium text-muted-foreground">
               Effort-normalized
               <Switch
                 checked={effortNormalized}
@@ -529,328 +584,340 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
             </label>
           </div>
         </div>
-        <p className="-mt-3 mb-2 text-sm text-muted-foreground">
-          Each dot is a run. Lines show your typical pace at that distance.
-        </p>
-        {showPaceHelp && (
-          <div className="mb-4 rounded-lg bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
-            <p>Longer runs are naturally slower. This compares runs of the same distance.</p>
-            <p>
-              If the whole line moves up over time at the same distances, you're getting faster.
+        {paceVsDistanceOpen && (
+          <>
+            <p className="-mt-3 mb-2 text-sm text-muted-foreground">
+              Each dot is a run. Lines show your typical pace at that distance.
             </p>
-          </div>
-        )}
-        <div className="mb-4 flex flex-wrap gap-2" aria-label="Comparison period">
-          {(
-            [
-              ["previous", "vs previous period"],
-              ["last-year", "vs same period last year"],
-              ["off", "off"],
-            ] as const
-          ).map(([key, label]) => (
-            <Button
-              key={key}
-              type="button"
-              size="sm"
-              variant={comparison === key ? "default" : "outline"}
-              className="h-7 rounded-full px-3 text-xs"
-              onClick={() => setComparison(key)}
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
-        <div
-          className="mb-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground"
-          aria-label="Chart key"
-        >
-          <span className="flex items-center gap-1.5">
-            <span className="size-2.5 rotate-45 bg-chart-2" />
-            Race
-          </span>
-        </div>
-        {currentPoints.length === 0 ? (
-          <Empty>No runs in this period.</Empty>
-        ) : (
-          <div>
-            <div className="mb-1 text-xs leading-tight text-muted-foreground" aria-hidden="true">
-              <p className="font-medium text-foreground">Pace (faster ↑)</p>
-              <p>min/mile</p>
-            </div>
-            <div className="h-80 w-full" data-pace-distance-chart>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart margin={{ top: 10, right: 92, bottom: 8, left: 4 }}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="var(--border)"
-                    strokeOpacity={0.6}
-                  />
-                  <XAxis
-                    type="number"
-                    dataKey="distance"
-                    scale="log"
-                    domain={[Math.max(0.1, minDistance / (1 + xPad)), maxDistance * (1 + xPad)]}
-                    ticks={distanceTicks}
-                    tickFormatter={(value: number) => `${value}`}
-                    tickLine={false}
-                    axisLine={false}
-                    fontSize={12}
-                  />
-                  <YAxis
-                    type="number"
-                    dataKey="pace"
-                    reversed
-                    domain={paceDomain}
-                    ticks={paceDistanceTicks}
-                    tickFormatter={(value: number) => formatPace(value).replace("/mi", "")}
-                    tickLine={false}
-                    axisLine={false}
-                    width={52}
-                    fontSize={12}
-                  />
-                  <ReferenceArea
-                    y1={EASY_BAND.from}
-                    y2={EASY_BAND.to}
-                    fill="var(--chart-1)"
-                    fillOpacity={0.1}
-                    label={{
-                      value: "Plan easy range 9:50–10:20",
-                      position: "insideTopLeft",
-                      fontSize: 11,
-                      fill: "var(--muted-foreground)",
-                    }}
-                  />
-                  <ReferenceLine y={goalPace} stroke="var(--foreground)" strokeDasharray="4 4" />
-                  {showRange && comparisonFit?.standardError != null && (
-                    <Area
-                      data={comparisonTrend}
-                      dataKey="band"
-                      fill="var(--muted-foreground)"
-                      fillOpacity={0.1}
-                      stroke="none"
-                      isAnimationActive={false}
-                    />
-                  )}
-                  {showRange && currentFit?.standardError != null && (
-                    <Area
-                      data={currentTrend}
-                      dataKey="band"
-                      fill="var(--chart-2)"
-                      fillOpacity={0.12}
-                      stroke="none"
-                      isAnimationActive={false}
-                    />
-                  )}
-                  {comparisonFit && (
-                    <Line
-                      data={comparisonTrend}
-                      dataKey="pace"
-                      stroke="var(--muted-foreground)"
-                      strokeWidth={2}
-                      strokeOpacity={0.55}
-                      dot={false}
-                      isAnimationActive={false}
-                    />
-                  )}
-                  {currentFit && (
-                    <Line
-                      data={currentTrend}
-                      dataKey="pace"
-                      stroke="var(--chart-2)"
-                      strokeWidth={2}
-                      dot={false}
-                      isAnimationActive={false}
-                    />
-                  )}
-                  {comparisonFit && comparisonTrendEnd != null && comparisonDates && (
-                    <ReferenceDot
-                      x={comparisonFit.maxDistance}
-                      y={comparisonTrendEnd}
-                      r={3}
-                      fill="var(--muted-foreground)"
-                      stroke="none"
-                      label={{
-                        value: comparisonDates.label,
-                        position: "right",
-                        fontSize: 11,
-                        fill: "var(--muted-foreground)",
-                      }}
-                    />
-                  )}
-                  {currentFit && currentTrendEnd != null && (
-                    <ReferenceDot
-                      x={currentFit.maxDistance}
-                      y={currentTrendEnd}
-                      r={3}
-                      fill="var(--chart-2)"
-                      stroke="none"
-                      label={{
-                        value: currentLabel,
-                        position: "right",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        fill: "var(--chart-2)",
-                      }}
-                    />
-                  )}
-                  {showEightGuide && (
-                    <ReferenceLine
-                      x={8}
-                      stroke="var(--muted-foreground)"
-                      strokeOpacity={0.4}
-                      strokeWidth={1}
-                      label={{
-                        value: `${(eightGap as number) >= 0 ? "+" : "−"}${Math.abs(eightGap as number)} s/mi`,
-                        position: "insideBottomRight",
-                        fontSize: 11,
-                        fill: "var(--muted-foreground)",
-                      }}
-                    />
-                  )}
-                  {showEightGuide && (
-                    <ReferenceDot
-                      x={8}
-                      y={comparisonEight as number}
-                      r={3.5}
-                      fill="var(--muted-foreground)"
-                      stroke="var(--background)"
-                      strokeWidth={1}
-                      label={{
-                        value: `${formatPace(comparisonEight as number).replace("/mi", "")} before`,
-                        position: "top",
-                        fontSize: 11,
-                        fill: "var(--muted-foreground)",
-                      }}
-                    />
-                  )}
-                  {showEightGuide && (
-                    <ReferenceDot
-                      x={8}
-                      y={currentEight as number}
-                      r={3.5}
-                      fill="var(--chart-2)"
-                      stroke="var(--background)"
-                      strokeWidth={1}
-                      label={{
-                        value: `${formatPace(currentEight as number).replace("/mi", "")} now`,
-                        position: "right",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        fill: "var(--chart-2)",
-                      }}
-                    />
-                  )}
-                  <Scatter
-                    data={comparisonPoints.filter((point) => !point.race)}
-                    fill="var(--muted-foreground)"
-                    fillOpacity={0.28}
-                    shape={<SmallDot />}
-                    isAnimationActive={false}
-                  />
-                  <Scatter
-                    data={comparisonPoints.filter((point) => point.race)}
-                    fill="var(--muted-foreground)"
-                    fillOpacity={0.32}
-                    shape={<RaceDot />}
-                    isAnimationActive={false}
-                  />
-                  <Scatter
-                    data={currentPoints.filter((point) => !point.race)}
-                    fill="var(--chart-2)"
-                    isAnimationActive={false}
-                  />
-                  <Scatter
-                    data={currentPoints.filter((point) => point.race)}
-                    fill="var(--chart-2)"
-                    shape={<RaceDot />}
-                    isAnimationActive={false}
-                  />
-                  <Tooltip content={<PaceDistanceTooltip />} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-            <p className="mt-1 text-center text-xs text-muted-foreground" aria-hidden="true">
-              Run distance (miles)
-            </p>
-          </div>
-        )}
-        <div className="mt-3 space-y-2 text-sm">
-          {!currentFit && currentPoints.length > 0 && (
-            <p className="text-muted-foreground">Current period: not enough runs to fit a trend.</p>
-          )}
-          {comparison !== "off" && !comparisonAvailable && (
-            <p className="text-muted-foreground">
-              Comparison hidden — fewer than 3 runs in that period.
-            </p>
-          )}
-          {comparisonAvailable && !comparisonFit && (
-            <p className="text-muted-foreground">
-              Comparison period: not enough runs to fit a trend.
-            </p>
-          )}
-          {currentFit &&
-            comparisonFit &&
-            currentEight != null &&
-            comparisonEight != null &&
-            comparisonDates && (
-              <p>
-                At 8 mi, your trend pace is {formatPace(currentEight)} now vs{" "}
-                {formatPace(comparisonEight)} in {comparisonDates.label} (
-                {currentEight - comparisonEight >= 0 ? "+" : "−"}
-                {Math.abs(Math.round(currentEight - comparisonEight))} s/mi). Average run distance{" "}
-                {currentFit.averageDistance.toFixed(1)} mi vs{" "}
-                {comparisonFit.averageDistance.toFixed(1)} mi.
-              </p>
+            {showPaceHelp && (
+              <div className="mb-4 rounded-lg bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                <p>Longer runs are naturally slower. This compares runs of the same distance.</p>
+                <p>
+                  If the whole line moves up over time at the same distances, you're getting faster.
+                </p>
+              </div>
             )}
-          {effortNormalized && (
-            <p className="text-muted-foreground">
-              Assumes similar effort on every run. Easy runs will look slower, so read the trend,
-              not the level.
-            </p>
-          )}
-        </div>
-        {distanceRows.length > 0 && (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs uppercase tracking-widest text-muted-foreground">
-                  <th className="px-3 py-2 text-left">Distance</th>
-                  <th className="px-3 py-2 text-right">Current</th>
-                  <th className="px-3 py-2 text-right">Comparison</th>
-                  <th className="px-3 py-2 text-right">Difference</th>
-                </tr>
-              </thead>
-              <tbody>
-                {distanceRows.map((row) => (
-                  <tr key={row.label} className="border-b border-border/70">
-                    <th className="px-3 py-2 text-left font-medium">{row.label}</th>
-                    <td className="px-3 py-2 text-right tnum">
-                      {row.currentPace == null
-                        ? "—"
-                        : `${formatPace(row.currentPace)} · ${row.currentCount} ${row.currentCount === 1 ? "run" : "runs"}`}
-                    </td>
-                    <td className="px-3 py-2 text-right tnum">
-                      {row.comparisonPace == null
-                        ? "—"
-                        : `${formatPace(row.comparisonPace)} · ${row.comparisonCount} ${row.comparisonCount === 1 ? "run" : "runs"}`}
-                    </td>
-                    <td className="px-3 py-2 text-right tnum">
-                      {row.difference == null
-                        ? "—"
-                        : `${row.difference > 0 ? "+" : row.difference < 0 ? "−" : ""}${Math.abs(row.difference)} s/mi`}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            <div className="mb-4 flex flex-wrap gap-2" aria-label="Comparison period">
+              {(
+                [
+                  ["previous", "vs previous period"],
+                  ["last-year", "vs same period last year"],
+                  ["off", "off"],
+                ] as const
+              ).map(([key, label]) => (
+                <Button
+                  key={key}
+                  type="button"
+                  size="sm"
+                  variant={comparison === key ? "default" : "outline"}
+                  className="h-7 rounded-full px-3 text-xs"
+                  onClick={() => setComparison(key)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+            <div
+              className="mb-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground"
+              aria-label="Chart key"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rotate-45 bg-chart-2" />
+                Race
+              </span>
+            </div>
+            {currentPoints.length === 0 ? (
+              <Empty>No runs in this period.</Empty>
+            ) : (
+              <div>
+                <div
+                  className="mb-1 text-xs leading-tight text-muted-foreground"
+                  aria-hidden="true"
+                >
+                  <p className="font-medium text-foreground">Pace (faster ↑)</p>
+                  <p>min/mile</p>
+                </div>
+                <div className="h-80 w-full" data-pace-distance-chart>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart margin={{ top: 10, right: 92, bottom: 8, left: 4 }}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="var(--border)"
+                        strokeOpacity={0.6}
+                      />
+                      <XAxis
+                        type="number"
+                        dataKey="distance"
+                        scale="log"
+                        domain={[Math.max(0.1, minDistance / (1 + xPad)), maxDistance * (1 + xPad)]}
+                        ticks={distanceTicks}
+                        tickFormatter={(value: number) => `${value}`}
+                        tickLine={false}
+                        axisLine={false}
+                        fontSize={12}
+                      />
+                      <YAxis
+                        type="number"
+                        dataKey="pace"
+                        reversed
+                        domain={paceDomain}
+                        ticks={paceDistanceTicks}
+                        tickFormatter={(value: number) => formatPace(value).replace("/mi", "")}
+                        tickLine={false}
+                        axisLine={false}
+                        width={52}
+                        fontSize={12}
+                      />
+                      <ReferenceArea
+                        y1={EASY_BAND.from}
+                        y2={EASY_BAND.to}
+                        fill="var(--chart-1)"
+                        fillOpacity={0.1}
+                        label={{
+                          value: "Plan easy range 9:50–10:20",
+                          position: "insideTopLeft",
+                          fontSize: 11,
+                          fill: "var(--muted-foreground)",
+                        }}
+                      />
+                      <ReferenceLine
+                        y={goalPace}
+                        stroke="var(--foreground)"
+                        strokeDasharray="4 4"
+                      />
+                      {showRange && comparisonFit?.standardError != null && (
+                        <Area
+                          data={comparisonTrend}
+                          dataKey="band"
+                          fill="var(--muted-foreground)"
+                          fillOpacity={0.1}
+                          stroke="none"
+                          isAnimationActive={false}
+                        />
+                      )}
+                      {showRange && currentFit?.standardError != null && (
+                        <Area
+                          data={currentTrend}
+                          dataKey="band"
+                          fill="var(--chart-2)"
+                          fillOpacity={0.12}
+                          stroke="none"
+                          isAnimationActive={false}
+                        />
+                      )}
+                      {comparisonFit && (
+                        <Line
+                          data={comparisonTrend}
+                          dataKey="pace"
+                          stroke="var(--muted-foreground)"
+                          strokeWidth={2}
+                          strokeOpacity={0.55}
+                          dot={false}
+                          isAnimationActive={false}
+                        />
+                      )}
+                      {currentFit && (
+                        <Line
+                          data={currentTrend}
+                          dataKey="pace"
+                          stroke="var(--chart-2)"
+                          strokeWidth={2}
+                          dot={false}
+                          isAnimationActive={false}
+                        />
+                      )}
+                      {comparisonFit && comparisonTrendEnd != null && comparisonDates && (
+                        <ReferenceDot
+                          x={comparisonFit.maxDistance}
+                          y={comparisonTrendEnd}
+                          r={3}
+                          fill="var(--muted-foreground)"
+                          stroke="none"
+                          label={{
+                            value: comparisonDates.label,
+                            position: "right",
+                            fontSize: 11,
+                            fill: "var(--muted-foreground)",
+                          }}
+                        />
+                      )}
+                      {currentFit && currentTrendEnd != null && (
+                        <ReferenceDot
+                          x={currentFit.maxDistance}
+                          y={currentTrendEnd}
+                          r={3}
+                          fill="var(--chart-2)"
+                          stroke="none"
+                          label={{
+                            value: currentLabel,
+                            position: "right",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            fill: "var(--chart-2)",
+                          }}
+                        />
+                      )}
+                      {showEightGuide && (
+                        <ReferenceLine
+                          x={8}
+                          stroke="var(--muted-foreground)"
+                          strokeOpacity={0.4}
+                          strokeWidth={1}
+                          label={{
+                            value: `${(eightGap as number) >= 0 ? "+" : "−"}${Math.abs(eightGap as number)} s/mi`,
+                            position: "insideBottomRight",
+                            fontSize: 11,
+                            fill: "var(--muted-foreground)",
+                          }}
+                        />
+                      )}
+                      {showEightGuide && (
+                        <ReferenceDot
+                          x={8}
+                          y={comparisonEight as number}
+                          r={3.5}
+                          fill="var(--muted-foreground)"
+                          stroke="var(--background)"
+                          strokeWidth={1}
+                          label={{
+                            value: `${formatPace(comparisonEight as number).replace("/mi", "")} before`,
+                            position: "top",
+                            fontSize: 11,
+                            fill: "var(--muted-foreground)",
+                          }}
+                        />
+                      )}
+                      {showEightGuide && (
+                        <ReferenceDot
+                          x={8}
+                          y={currentEight as number}
+                          r={3.5}
+                          fill="var(--chart-2)"
+                          stroke="var(--background)"
+                          strokeWidth={1}
+                          label={{
+                            value: `${formatPace(currentEight as number).replace("/mi", "")} now`,
+                            position: "right",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            fill: "var(--chart-2)",
+                          }}
+                        />
+                      )}
+                      <Scatter
+                        data={comparisonPoints.filter((point) => !point.race)}
+                        fill="var(--muted-foreground)"
+                        fillOpacity={0.28}
+                        shape={<SmallDot />}
+                        isAnimationActive={false}
+                      />
+                      <Scatter
+                        data={comparisonPoints.filter((point) => point.race)}
+                        fill="var(--muted-foreground)"
+                        fillOpacity={0.32}
+                        shape={<RaceDot />}
+                        isAnimationActive={false}
+                      />
+                      <Scatter
+                        data={currentPoints.filter((point) => !point.race)}
+                        fill="var(--chart-2)"
+                        isAnimationActive={false}
+                      />
+                      <Scatter
+                        data={currentPoints.filter((point) => point.race)}
+                        fill="var(--chart-2)"
+                        shape={<RaceDot />}
+                        isAnimationActive={false}
+                      />
+                      <Tooltip content={<PaceDistanceTooltip />} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="mt-1 text-center text-xs text-muted-foreground" aria-hidden="true">
+                  Run distance (miles)
+                </p>
+              </div>
+            )}
+            <div className="mt-3 space-y-2 text-sm">
+              {!currentFit && currentPoints.length > 0 && (
+                <p className="text-muted-foreground">
+                  Current period: not enough runs to fit a trend.
+                </p>
+              )}
+              {comparison !== "off" && !comparisonAvailable && (
+                <p className="text-muted-foreground">
+                  Comparison hidden — fewer than 3 runs in that period.
+                </p>
+              )}
+              {comparisonAvailable && !comparisonFit && (
+                <p className="text-muted-foreground">
+                  Comparison period: not enough runs to fit a trend.
+                </p>
+              )}
+              {currentFit &&
+                comparisonFit &&
+                currentEight != null &&
+                comparisonEight != null &&
+                comparisonDates && (
+                  <p>
+                    At 8 mi, your trend pace is {formatPace(currentEight)} now vs{" "}
+                    {formatPace(comparisonEight)} in {comparisonDates.label} (
+                    {currentEight - comparisonEight >= 0 ? "+" : "−"}
+                    {Math.abs(Math.round(currentEight - comparisonEight))} s/mi). Average run
+                    distance {currentFit.averageDistance.toFixed(1)} mi vs{" "}
+                    {comparisonFit.averageDistance.toFixed(1)} mi.
+                  </p>
+                )}
+              {effortNormalized && (
+                <p className="text-muted-foreground">
+                  Assumes similar effort on every run. Easy runs will look slower, so read the
+                  trend, not the level.
+                </p>
+              )}
+            </div>
+            {distanceRows.length > 0 && (
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs uppercase tracking-widest text-muted-foreground">
+                      <th className="px-3 py-2 text-left">Distance</th>
+                      <th className="px-3 py-2 text-right">Current</th>
+                      <th className="px-3 py-2 text-right">Comparison</th>
+                      <th className="px-3 py-2 text-right">Difference</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {distanceRows.map((row) => (
+                      <tr key={row.label} className="border-b border-border/70">
+                        <th className="px-3 py-2 text-left font-medium">{row.label}</th>
+                        <td className="px-3 py-2 text-right tnum">
+                          {row.currentPace == null
+                            ? "—"
+                            : `${formatPace(row.currentPace)} · ${row.currentCount} ${row.currentCount === 1 ? "run" : "runs"}`}
+                        </td>
+                        <td className="px-3 py-2 text-right tnum">
+                          {row.comparisonPace == null
+                            ? "—"
+                            : `${formatPace(row.comparisonPace)} · ${row.comparisonCount} ${row.comparisonCount === 1 ? "run" : "runs"}`}
+                        </td>
+                        <td className="px-3 py-2 text-right tnum">
+                          {row.difference == null
+                            ? "—"
+                            : `${row.difference > 0 ? "+" : row.difference < 0 ? "−" : ""}${Math.abs(row.difference)} s/mi`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </section>
 
       {/* long-run check */}
-      <section>
-        <SectionTitle>Long-run check</SectionTitle>
+      <Fold title="Long-run check">
         {longRuns.length === 0 ? (
           <div className="mt-4">
             <Empty>No long runs (10+ mi) in this period.</Empty>
@@ -994,11 +1061,10 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
             halves and slowest mile
           </p>
         )}
-      </section>
+      </Fold>
 
       {/* distribution */}
-      <section>
-        <SectionTitle>Pace distribution</SectionTitle>
+      <Fold title="Pace distribution">
         {buckets.length === 0 ? (
           <div className="mt-4">
             <Empty>No per-mile splits in this period.</Empty>
@@ -1041,11 +1107,10 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
             </ResponsiveContainer>
           </div>
         )}
-      </section>
+      </Fold>
 
       {/* zone mix */}
-      <section>
-        <SectionTitle>Zone mix</SectionTitle>
+      <Fold title="Zone mix">
         {miles.length === 0 ? (
           <div className="mt-4">
             <Empty>No per-mile splits in this period.</Empty>
@@ -1080,11 +1145,10 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
             )}
           </>
         )}
-      </section>
+      </Fold>
 
       {/* best efforts */}
-      <section>
-        <SectionTitle>Best efforts</SectionTitle>
+      <Fold title="Best efforts">
         {efforts.every((e) => !e) ? (
           <div className="mt-4">
             <Empty>No per-mile splits in this period.</Empty>
@@ -1117,7 +1181,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
             )}
           </div>
         )}
-      </section>
+      </Fold>
 
       <section>
         <SectionTitle>Predicted finish from training</SectionTitle>
@@ -1127,8 +1191,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
       </section>
 
       {/* predicted finish over time */}
-      <section>
-        <SectionTitle>Predicted finish over time</SectionTitle>
+      <Fold title="Predicted finish over time">
         {predTrend.length === 0 ? (
           <div className="mt-4">
             <Empty>Not enough data to predict a finish in this period.</Empty>
@@ -1208,48 +1271,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
             ? ` · dotted line: ${formatDuration(d.predictedSeconds)} from your recent race`
             : ""}
         </p>
-      </section>
-    </div>
-  );
-}
-
-/** Shown on both Pace Analysis and Race Day; recalculates whenever runs change. */
-export function TrainingPrediction({ d, compact = false }: { d: Dashboard; compact?: boolean }) {
-  const prediction = useMemo(
-    () => predictFromTraining(d.runs, d.bestEffortRows, d.today, d.splitsByActivity),
-    [d.runs, d.bestEffortRows, d.today, d.splitsByActivity],
-  );
-
-  if (!prediction) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Not enough recent splits to predict a finish yet.
-      </p>
-    );
-  }
-
-  const { basis } = prediction;
-  return (
-    <div className={compact ? "" : "surface-card p-5"}>
-      {compact && (
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Predicted from training
-        </p>
-      )}
-      <p className="stat-figure text-3xl font-semibold tnum">
-        {formatDuration(prediction.seconds)}
-      </p>
-      <p className="text-sm text-muted-foreground tnum">
-        {formatDuration(prediction.low)}–{formatDuration(prediction.high)} range
-      </p>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Based on: {basis.effort} {formatPace(basis.pace)} on{" "}
-        {new Date(`${basis.date}T00:00:00`).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })}{" "}
-        · longest run {basis.longestMi} mi · {basis.weeklyMi} mi/week
-      </p>
+      </Fold>
     </div>
   );
 }

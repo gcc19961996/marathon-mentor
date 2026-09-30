@@ -64,7 +64,7 @@ export function AskBar({ d, daysAvailable }: { d: Dashboard; daysAvailable: stri
       {(history.data?.length ?? 0) > 0 && (
         <button
           type="button"
-          className="mt-4 text-sm text-muted-foreground underline-offset-4 hover:underline"
+          className="mt-2 inline-flex min-h-11 items-center text-sm text-muted-foreground underline-offset-4 hover:underline"
           onClick={() => setShowHistory(!showHistory)}
         >
           {showHistory ? "Hide" : "Show"} past questions ({history.data?.length ?? 0})

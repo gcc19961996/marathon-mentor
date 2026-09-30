@@ -7,8 +7,13 @@ export const SINGLE_USER_ID = "00000000-0000-0000-0000-000000000001";
 const TOKEN_URL = "https://www.strava.com/oauth/token";
 const API = "https://www.strava.com/api/v3";
 
-/** Strava only ever redirects back to the published site, never a preview URL. */
-export const PUBLIC_ORIGIN = "https://run-mindset-coach.lovable.app";
+/**
+ * Strava only ever redirects back to this origin, never a preview URL. Set
+ * PUBLIC_ORIGIN per environment (e.g. http://localhost:8080 for local dev).
+ */
+export const PUBLIC_ORIGIN = (
+  process.env["PUBLIC_ORIGIN"] || "https://run-mindset-coach.lovable.app"
+).replace(/\/+$/, "");
 export const REDIRECT_URI = `${PUBLIC_ORIGIN}/strava/callback`;
 
 /** Activity types that count as a run (treadmill runs arrive as VirtualRun). */

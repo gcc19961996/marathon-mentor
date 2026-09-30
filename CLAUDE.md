@@ -1,0 +1,46 @@
+# Marathon Training Companion
+
+Personal, single-runner NYC Marathon dashboard: fixed weekly plan, run log, Strava sync,
+mile-split pace analysis, race-day checklist, and a small AI coach. Originally built in
+Lovable; now developed here and deployed to Vercel. Repo: github.com/gcc19961996/marathon-mentor.
+
+## Stack
+- TanStack Start (React 19, file routes in `src/routes`, server functions via `createServerFn`)
+- Vite 8 through `@lovable.dev/vite-tanstack-config` (bundles the plugins; see the note in
+  `vite.config.ts` before adding any). Nitro builds the server with the `vercel` preset.
+- Tailwind 4 + shadcn/ui (`src/components/ui`), app components in `src/components/marathon`
+- Supabase Postgres. The browser never talks to the database directly.
+- AI coach: Gemini via Google's OpenAI-compatible endpoint (`src/lib/ai-gateway.server.ts`)
+
+## Commands
+Use **bun** for installs (the lockfile is `bun.lock`); scripts run on Node.
+- `bun install` · `bun run dev` (http://localhost:8080) · `bun run build` · `bun run lint`
+- Type check: `node node_modules/typescript/bin/tsc --noEmit`
+- Apply migrations: `npx supabase db push --db-url "$SUPABASE_DB_URL"` (value from `.env.local`)
+- Load a backup: `bun --env-file=.env.local scripts/import-backup.ts backups/<file>.json [--yes]`
+  (empties all app tables first; without `--yes` it is a dry run)
+
+## How it works
+- **Access:** no accounts. `PasscodeGate` exchanges `APP_PASSCODE` (owner) or `VIEWER_PASSCODE`
+  (read-only) for a signed 90-day device token sent as `x-app-token` (`src/lib/gate.server.ts`).
+- **Data:** all reads/writes go through `dbOp` in `src/lib/db.functions.ts` using the service-role
+  client. Writes need the owner role, are range-validated and rate limited. Every row uses the
+  fixed `SINGLE_USER_ID`. Runs are soft-deleted (`hidden = true`). React Query hooks live in
+  `src/lib/data.ts`; `useDashboard` (`src/lib/dashboard.ts`) derives what the tabs show.
+- **Schema:** `supabase/migrations` is the source of truth; `src/integrations/supabase/types.ts`
+  mirrors it. Add a new migration file rather than editing old ones.
+- **Strava:** OAuth + sync in `src/lib/strava.server.ts`. Redirect origin comes from `PUBLIC_ORIGIN`.
+  Sync is triggered from the browser (`useStravaAutoSync`); there are no cron jobs.
+- **AI coach:** `askCoach` in `src/lib/ai.functions.ts`, capped at 30 calls/day via `bump_ai_usage`.
+- `src/integrations/supabase/*`, `lovable-error-reporting.ts` and `previewAuthStorage.ts` are
+  Lovable-generated. They are harmless off Lovable; clean up deliberately, not incidentally.
+
+## Environment
+Names are listed in `.env.example`. Local values live in `.env.local` (gitignored). The old `.env`
+points at Lovable's database and is overridden by `.env.local`.
+
+## Git
+- Branches: `main` = pre-migration snapshot; migration work happens on `migration`.
+- Never commit `.env*` (except `.env.example`) or `backups/` (personal training data).
+- Before every push, scan the diff for key-like strings (`sb_secret_`, `eyJ…`, `AIza…`,
+  connection strings) and ask the owner if anything looks like a secret.

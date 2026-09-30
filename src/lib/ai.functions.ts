@@ -78,12 +78,12 @@ async function enforceDailyLimit() {
 }
 
 async function runModel(system: string, prompt: string) {
-  const key = process.env["LOVABLE_API_KEY"];
+  const key = process.env["GEMINI_API_KEY"];
   if (!key) throw new Error("AI is not configured yet.");
   await enforceDailyLimit();
-  const { createLovableAiGatewayProvider, TRAINING_MODEL } = await import("./ai-gateway.server");
-  const gateway = createLovableAiGatewayProvider(key);
-  const result = streamText({ model: gateway(TRAINING_MODEL), system, prompt });
+  const { createGeminiProvider, TRAINING_MODEL } = await import("./ai-gateway.server");
+  const gemini = createGeminiProvider(key);
+  const result = streamText({ model: gemini(TRAINING_MODEL), system, prompt });
   return await result.text;
 }
 

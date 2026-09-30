@@ -77,7 +77,7 @@ export function StravaCard() {
             <p className="text-sm text-muted-foreground">
               Paste the Client ID and Client Secret from your Strava API settings page once.
               They are stored on the server only. Set the app&apos;s Authorization Callback
-              Domain to <span className="font-medium">run-mindset-coach.lovable.app</span>.
+              Domain to <span className="font-medium">{s.callbackDomain}</span>.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">

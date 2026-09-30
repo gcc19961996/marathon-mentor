@@ -1,17 +1,16 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
-export function createLovableAiGatewayProvider(lovableApiKey: string) {
+// Gemini through Google's OpenAI-compatible endpoint (key from aistudio.google.com).
+export function createGeminiProvider(apiKey: string) {
   return createOpenAICompatible({
-    name: "lovable",
-    baseURL: "https://ai.gateway.lovable.dev/v1",
-    headers: {
-      "Lovable-API-Key": lovableApiKey,
-      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
-    },
+    name: "gemini",
+    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
+    apiKey,
   });
 }
 
-export const TRAINING_MODEL = "google/gemini-3.8-flash";
+// Same model the Lovable AI gateway served as "google/gemini-3.8-flash".
+export const TRAINING_MODEL = process.env["GEMINI_MODEL"] || "gemini-3.8-flash";
 
 export const TRAINING_RULES = `Training rules you must respect:
 - Treat the fixed plan as authoritative. Never invent, regenerate, or move planned workouts; suggestions may only scale today's work down.

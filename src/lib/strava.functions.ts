@@ -8,6 +8,7 @@ export type StravaStatus = {
   lastError: string | null;
   runCount: number;
   splitsCount: number;
+  callbackDomain: string;
 };
 
 /** Status only — tokens never leave the server. */
@@ -15,7 +16,7 @@ export const getStravaStatus = createServerFn({ method: "GET" }).handler(
   async (): Promise<StravaStatus> => {
     (await import("./gate.server")).requireAnyRole();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { getConnection } = await import("./strava.server");
+    const { getConnection, PUBLIC_ORIGIN } = await import("./strava.server");
     const conn = await getConnection();
     const configured = Boolean(
       (process.env["STRAVA_CLIENT_ID"] && process.env["STRAVA_CLIENT_SECRET"]) ||
@@ -37,6 +38,7 @@ export const getStravaStatus = createServerFn({ method: "GET" }).handler(
       lastError: conn?.last_error ?? null,
       runCount: count ?? 0,
       splitsCount,
+      callbackDomain: new URL(PUBLIC_ORIGIN).hostname,
     };
   },
 );

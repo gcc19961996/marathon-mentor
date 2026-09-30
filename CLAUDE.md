@@ -51,7 +51,8 @@ points at Lovable's database and is overridden by `.env.local`.
   local-only and is not stored in Vercel.
 
 ## Git
-- Branches: `main` = pre-migration snapshot; migration work happens on `migration`.
+- `main` is the working branch. The code as downloaded from Lovable is tagged
+  `pre-migration-snapshot`.
 - Never commit `.env*` (except `.env.example`) or `backups/` (personal training data).
 - Before every push, scan the diff for key-like strings (`sb_secret_`, `eyJ…`, `AIza…`,
   connection strings) and ask the owner if anything looks like a secret.

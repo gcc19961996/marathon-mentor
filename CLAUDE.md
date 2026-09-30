@@ -41,9 +41,10 @@ Use **bun** for installs (the lockfile is `bun.lock`); scripts run on Node.
   local times.
 - **Tabs:** Weekly Plan loads up front; Progress, Pace Analysis and Race Day are `React.lazy` in
   `Dashboard.tsx`. Pace Analysis sections fold on phones (`Fold` / `useFoldedOnPhone`).
-- **Protected metrics:** the race-day split table, check-in scaling and plan matching are pinned
-  by tests; the training prediction (4:22:36 on 2026-09-29) and run log totals must not move
-  unless a change intends it.
+- **Protected metrics:** the race-day split table, check-in scaling, plan matching and the
+  training prediction are pinned by tests. The prediction (`predictFromTraining`) is Riegel from the
+  best recent 10K/5K, multiplied by smooth endurance/volume factors (`enduranceFactor`, `volumeFactor`); it
+  read 4:21:22 on 2026-09-30. Run log totals must not move unless a change intends it.
 
 ## Environment
 Names are listed in `.env.example`. Local values live in `.env.local` (gitignored).

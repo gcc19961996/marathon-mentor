@@ -538,8 +538,26 @@ export type TrainingPrediction = {
   basis: { effort: string; date: string; pace: number; longestMi: number; weeklyMi: number };
 } | null;
 
-/** Same 0.2 mi tolerance as the milestones: 15.9 mi counts as a 16-miler. */
-export const ENDURANCE_TOLERANCE_MI = 0.2;
+/** Linear between (x0, y0) and (x1, y1), flat outside that range. */
+function lerpClamped(x: number, x0: number, x1: number, y0: number, y1: number): number {
+  const t = Math.min(Math.max((x - x0) / (x1 - x0), 0), 1);
+  return y0 + t * (y1 - y0);
+}
+
+/**
+ * Endurance and volume adjustments to the Riegel estimate. They shrink
+ * gradually (rather than in steps at 16/20 mi and 25/35 mi a week) so every
+ * longer long run or bigger week moves the prediction a little:
+ * - longest run in 6 weeks: +4% at 14 mi or less, down to 0 at 20 mi
+ * - average weekly miles over 4 weeks: +3% at 15 or less, down to 0 at 40
+ */
+export function enduranceFactor(longestMi: number): number {
+  return lerpClamped(longestMi, 14, 20, 1.04, 1);
+}
+
+export function volumeFactor(weeklyMi: number): number {
+  return lerpClamped(weeklyMi, 15, 40, 1.03, 1);
+}
 
 export function predictFromTraining(
   runs: AnalysisRun[],
@@ -562,15 +580,13 @@ export function predictFromTraining(
   const longestMi = runs
     .filter((r) => r.date >= since(42) && r.date <= today)
     .reduce((m, r) => Math.max(m, Number(r.distance_mi || 0)), 0);
-  if (longestMi < 16 - ENDURANCE_TOLERANCE_MI) seconds *= 1.04;
-  else if (longestMi < 20 - ENDURANCE_TOLERANCE_MI) seconds *= 1.02;
+  seconds *= enduranceFactor(longestMi);
 
   const fourWeekMiles = runs
     .filter((r) => r.date >= since(28) && r.date <= today)
     .reduce((s, r) => s + Number(r.distance_mi || 0), 0);
   const weeklyMi = Math.round((fourWeekMiles / 4) * 10) / 10;
-  if (weeklyMi < 25) seconds *= 1.03;
-  else if (weeklyMi <= 35) seconds *= 1.015;
+  seconds *= volumeFactor(weeklyMi);
 
   seconds = Math.round(seconds);
   return {

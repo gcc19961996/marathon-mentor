@@ -33,6 +33,7 @@ import {
   zoneMix,
   type RangeKey,
   type AnalysisRun,
+  type BestEffort,
   type PaceDistanceComparison,
 } from "@/lib/paceAnalysis";
 
@@ -54,6 +55,33 @@ function Empty({ children }: { children: React.ReactNode }) {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h3 className="section-kicker mb-4">{children}</h3>;
+}
+
+const RANGE_PHRASE: Record<RangeKey, string> = {
+  "4w": "last 4 weeks",
+  "3m": "last 3 months",
+  "12m": "last 12 months",
+};
+
+function effortDate(date: string): string {
+  return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+/** The best on record (every run in the app) beneath a period's best effort. */
+function RecordLine({ best, record }: { best: BestEffort; record: BestEffort }) {
+  if (!record) return null;
+  if (best && best.seconds <= record.seconds) {
+    return <p className="mt-2 text-xs font-semibold text-success">Your best on record</p>;
+  }
+  return (
+    <p className="mt-2 text-xs text-muted-foreground tnum">
+      Best on record: {formatClock(record.seconds)} · {effortDate(record.date)}
+    </p>
+  );
 }
 
 /** Open on desktop; folded on phones so the tab opens on the takeaway. */
@@ -467,6 +495,10 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
 
       {/* best efforts */}
       <Fold title="Best efforts">
+        <p className="-mt-2 mb-3 text-xs text-muted-foreground">
+          Fastest in the {RANGE_PHRASE[range]}: Strava's quickest continuous stretch with the clock
+          running, so a mile with a stop in it doesn't count.
+        </p>
         {efforts.every((e) => !e) ? (
           <div className="mt-4">
             <Empty>No per-mile splits in this period.</Empty>
@@ -483,17 +515,14 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                     {formatClock(e.seconds)}
                   </p>
                   <p className="text-sm text-muted-foreground tnum">
-                    {formatPace(e.pace)} ·{" "}
-                    {new Date(`${e.date}T00:00:00`).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {formatPace(e.pace)} · {effortDate(e.date)}
                   </p>
+                  <RecordLine best={e} record={allEfforts[i] ?? null} />
                 </div>
               ) : (
                 <div key={i} className="surface-card p-4">
-                  <p className="text-sm text-muted-foreground">Not enough splits yet.</p>
+                  <p className="text-sm text-muted-foreground">None in this period.</p>
+                  <RecordLine best={null} record={allEfforts[i] ?? null} />
                 </div>
               ),
             )}

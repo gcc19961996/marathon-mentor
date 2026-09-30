@@ -64,14 +64,24 @@ function summaryValue(label: string, value: React.ReactNode) {
   );
 }
 
+/** Pauses shorter than this are GPS noise; longer ones are worth pointing out. */
+const STOP_NOTE_SECONDS = 15;
+
+/** "58 s stopped · clock 8:37" when the watch was paused inside the mile. */
+function stopNote(split: FlaggedSplit): string | null {
+  if (split.elapsed == null) return null;
+  const stopped = Math.round(split.elapsed - split.moving);
+  if (stopped < STOP_NOTE_SECONDS) return null;
+  return `${stopped < 60 ? `${stopped} s` : formatStop(stopped)} stopped · clock ${formatStop(split.elapsed)}`;
+}
+
 function splitReason(split: FlaggedSplit): string | null {
-  if (!split.flag) return null;
-  if (split.elapsed != null && split.elapsed - split.moving > 60) {
-    return `stop · ${formatStop(split.elapsed)} elapsed vs ${formatStop(split.moving)} moving`;
-  }
-  return split.reason
+  const stop = stopNote(split);
+  if (!split.flag) return stop;
+  const flag = split.reason
     ? `${flagLabel(split.flag)?.replace("Suspect split · ", "")} · ${split.reason}`
     : flagLabel(split.flag);
+  return [flag, stop].filter(Boolean).join(" · ");
 }
 
 function splitLabel(split: FlaggedSplit, run: Run): string {

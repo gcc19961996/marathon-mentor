@@ -30,6 +30,8 @@ function sessionConfig() {
 }
 
 export function gateSession() {
+  // TanStack Start server session helper, not a React hook.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   return useSession<GateSession>(sessionConfig());
 }
 

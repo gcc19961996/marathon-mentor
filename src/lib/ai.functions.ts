@@ -90,15 +90,6 @@ async function runModel(system: string, prompt: string) {
   return await result.text;
 }
 
-function extractJson(text: string): unknown {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const raw = (fenced ? fenced[1] : text) ?? text;
-  const start = raw.indexOf("{");
-  const end = raw.lastIndexOf("}");
-  if (start === -1 || end === -1) throw new Error("The AI reply could not be read as a plan.");
-  return JSON.parse(raw.slice(start, end + 1));
-}
-
 // At most one question every 10 seconds, on top of the daily cap.
 const askTimes: number[] = [];
 function checkAskRate() {

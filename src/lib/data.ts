@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { dbOp, SINGLE_USER_ID, type DbOp } from "./db.functions";
-import { isoDate, startOfWeek } from "./training";
+import { isoDate } from "./training";
 
 // Single-user app: no sign-in, every row belongs to this fixed id.
 export { SINGLE_USER_ID };
@@ -54,16 +54,6 @@ export type Run = {
   elapsed_seconds: number | null;
   stopped_seconds: number | null;
   clock_left_running: boolean | null;
-};
-
-export type WeeklyPlan = {
-  id: string;
-  week_start: string;
-  option_a: any;
-  option_b: any;
-  baseline: any;
-  selected_option: string | null;
-  completed: Record<string, boolean>;
 };
 
 export type Checkin = {
@@ -201,62 +191,6 @@ export function useRunMutations(userId?: string) {
 
 /* ---------- weekly plan ---------- */
 
-export function useCurrentPlan(userId?: string) {
-  const weekStart = isoDate(startOfWeek());
-  return useQuery({
-    queryKey: ["plan", userId, weekStart],
-    queryFn: () =>
-      op<WeeklyPlan | null>({
-        table: "weekly_plans",
-        action: "select",
-        match: { week_start: weekStart },
-        single: true,
-      }),
-  });
-}
-
-export function usePlanMutations(userId?: string) {
-  const qc = useQueryClient();
-  const weekStart = isoDate(startOfWeek());
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["plan"] });
-  return {
-    weekStart,
-    save: useMutation({
-      mutationFn: async (v: {
-        option_a: unknown;
-        option_b: unknown;
-        selected_option?: string | null;
-      }) => {
-        await op({
-          table: "weekly_plans",
-          action: "upsert",
-          onConflict: "user_id,week_start",
-          values: {
-            week_start: weekStart,
-            selected_option: null,
-            ...v,
-            // Snapshot of the week as first built, for "Reset plan to original".
-            baseline: { option_a: v.option_a, option_b: v.option_b },
-            completed: {},
-          } as Record<string, unknown>,
-        });
-      },
-      onSuccess: invalidate,
-    }),
-    patch: useMutation({
-      mutationFn: async (patch: Partial<WeeklyPlan>) => {
-        await op({
-          table: "weekly_plans",
-          action: "update",
-          match: { week_start: weekStart },
-          values: patch as Record<string, unknown>,
-        });
-      },
-      onSuccess: invalidate,
-    }),
-  };
-}
-
 /* ---------- check-ins ---------- */
 
 export function useTodayCheckin(userId?: string) {
@@ -369,19 +303,6 @@ export function useSaveQuestion(userId?: string) {
 }
 
 /* ---------- recent plans (for the Monday recap and long-run rule) ---------- */
-
-export function useRecentPlans(userId?: string) {
-  return useQuery({
-    queryKey: ["plans-recent", userId],
-    queryFn: () =>
-      op<WeeklyPlan[]>({
-        table: "weekly_plans",
-        action: "select",
-        order: [{ column: "week_start", ascending: false }],
-        limit: 6,
-      }),
-  });
-}
 
 /* ---------- bulk run import ---------- */
 

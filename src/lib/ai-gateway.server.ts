@@ -9,7 +9,7 @@ export function createGeminiProvider(apiKey: string) {
   });
 }
 
-// Same model the Lovable AI gateway served as "google/gemini-3.8-flash".
+// Same model the app used on Lovable (served there as "google/gemini-3.8-flash").
 export const TRAINING_MODEL = process.env["GEMINI_MODEL"] || "gemini-3.8-flash";
 
 export const TRAINING_RULES = `Training rules you must respect:

@@ -11,7 +11,6 @@ const TABLES = [
   "runs",
   "run_splits",
   "run_best_efforts",
-  "weekly_plans",
   "daily_checkins",
   "milestones",
   "questions",

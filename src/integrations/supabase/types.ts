@@ -614,45 +614,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      weekly_plans: {
-        Row: {
-          baseline: Json | null;
-          completed: Json;
-          created_at: string;
-          id: string;
-          option_a: Json;
-          option_b: Json;
-          selected_option: string | null;
-          updated_at: string;
-          user_id: string;
-          week_start: string;
-        };
-        Insert: {
-          baseline?: Json | null;
-          completed?: Json;
-          created_at?: string;
-          id?: string;
-          option_a?: Json;
-          option_b?: Json;
-          selected_option?: string | null;
-          updated_at?: string;
-          user_id?: string;
-          week_start: string;
-        };
-        Update: {
-          baseline?: Json | null;
-          completed?: Json;
-          created_at?: string;
-          id?: string;
-          option_a?: Json;
-          option_b?: Json;
-          selected_option?: string | null;
-          updated_at?: string;
-          user_id?: string;
-          week_start?: string;
-        };
-        Relationships: [];
-      };
     };
     Views: {
       [_ in never]: never;

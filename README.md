@@ -1,29 +1,33 @@
-# Welcome to your Lovable project
+# Marathon Mentor
 
-This project was built with [Lovable](https://lovable.dev).
+A personal NYC Marathon training dashboard: a fixed seven-week plan, daily check-ins, a run log
+synced from Strava, mile-split pace analysis, race-day splits and a small AI coach.
 
-## Build with Lovable
+Live at https://marathon-mentor-nine.vercel.app (passcode protected).
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+## Run it locally
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Requires Node.js 22+ and [Bun](https://bun.sh) (used for installs; the lockfile is `bun.lock`).
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+bun install
+cp .env.example .env.local   # then fill in the values
+bun run dev                  # http://localhost:8080
 ```
+
+## Useful commands
+
+| Command                    | What it does                                         |
+| -------------------------- | ---------------------------------------------------- |
+| `bun run dev`              | Start the local dev server                           |
+| `bun run build`            | Production build (Vercel output in `.vercel/output`) |
+| `bun run test`             | Run the unit tests for the training rules            |
+| `bun run lint`             | ESLint + Prettier checks                             |
+| `npx vercel deploy --prod` | Deploy to the live site                              |
+
+See [CLAUDE.md](CLAUDE.md) for how the app is put together, the database, and deployment.
 
 ## Built with
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+TanStack Start (React 19), Vite, Tailwind CSS, Supabase (Postgres), Gemini, the Strava API, and
+Vercel. Originally prototyped in Lovable.

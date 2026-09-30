@@ -16,16 +16,6 @@ export function getDeviceToken(): string | null {
   }
 }
 
-export function getDeviceRole(): AppRole | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const role = window.localStorage.getItem(ROLE_KEY);
-    return role === "owner" || role === "viewer" ? role : null;
-  } catch {
-    return null;
-  }
-}
-
 export function saveDeviceToken(token: string, role: AppRole) {
   try {
     window.localStorage.setItem(KEY, token);
@@ -44,9 +34,4 @@ export function clearDeviceToken() {
     /* ignore */
   }
   listeners.forEach((fn) => fn());
-}
-
-export function onDeviceTokenChange(fn: () => void) {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
 }

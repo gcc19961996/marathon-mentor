@@ -12,7 +12,7 @@ const API = "https://www.strava.com/api/v3";
  * PUBLIC_ORIGIN per environment (e.g. http://localhost:8080 for local dev).
  */
 export const PUBLIC_ORIGIN = (
-  process.env["PUBLIC_ORIGIN"] || "https://run-mindset-coach.lovable.app"
+  process.env["PUBLIC_ORIGIN"] || "https://marathon-mentor-nine.vercel.app"
 ).replace(/\/+$/, "");
 export const REDIRECT_URI = `${PUBLIC_ORIGIN}/strava/callback`;
 

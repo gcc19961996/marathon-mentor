@@ -56,12 +56,6 @@ import {
   startOfWeek,
 } from "@/lib/training";
 
-function checkClasses(label?: string) {
-  if (label === "Aggressive") return "bg-destructive text-destructive-foreground";
-  if (label === "Stretch") return "bg-caution text-caution-foreground";
-  return "bg-success text-success-foreground";
-}
-
 export function ProgressTab({ d, prefillRun = 0 }: { d: Dashboard; prefillRun?: number }) {
   return (
     <div className="space-y-6">
@@ -1430,7 +1424,6 @@ function PasteRuns({ d }: { d: Dashboard }) {
     try {
       await addRuns.mutateAsync(
         fresh.map((r) => {
-          const row = d.planDays.find((p) => p.date === r.date);
           return {
             date: r.date,
             type: "",

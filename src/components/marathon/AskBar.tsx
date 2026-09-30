@@ -7,13 +7,10 @@ import { askCoach } from "@/lib/ai.functions";
 import { useQuestions, useSaveQuestion } from "@/lib/data";
 import { buildAiContext, type Dashboard } from "@/lib/dashboard";
 
-type Suggested = { type?: string; distance_mi?: number; pace_zone?: string; why?: string } | null;
-
 export function AskBar({ d, daysAvailable }: { d: Dashboard; daysAvailable: string[] }) {
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
-  const [suggested, setSuggested] = useState<Suggested>(null);
   const [showHistory, setShowHistory] = useState(false);
   const history = useQuestions(d.userId);
   const saveQuestion = useSaveQuestion(d.userId);
@@ -23,13 +20,11 @@ export function AskBar({ d, daysAvailable }: { d: Dashboard; daysAvailable: stri
     if (!question.trim()) return;
     setBusy(true);
     setAnswer(null);
-    setSuggested(null);
     try {
       const res = await askCoach({
         data: { question: question.trim(), context: buildAiContext(d, { daysAvailable }) },
       });
       setAnswer(res.answer);
-      setSuggested((res.suggested as Suggested) ?? null);
       await saveQuestion.mutateAsync({
         question: question.trim(),
         answer: res.answer,

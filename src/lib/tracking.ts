@@ -1,15 +1,7 @@
 // Pure helpers for pasted-run import, weekly recap and the long-run hold rule.
 
 import type { Run } from "./data";
-import {
-  DAY_NAMES,
-  dayIndexOf,
-  easyPaceFlag,
-  isoDate,
-  parseDuration,
-  startOfWeek,
-  type PlanDay,
-} from "./training";
+import { DAY_NAMES, easyPaceFlag, isoDate, parseDuration, type PlanDay } from "./training";
 
 /* ---------- paste runs ---------- */
 
@@ -55,17 +47,6 @@ export function parsePastedRuns(text: string, existing: Run[]): PastedRow[] {
       seen.push({ date, miles });
       return { ...base, status: "new" };
     });
-}
-
-/** Plan day for a date in the active week, or null when it's another week. */
-export function planDayFor(
-  date: string,
-  activeDays: PlanDay[],
-): { index: number; day: PlanDay } | null {
-  const i = dayIndexOf(date, startOfWeek());
-  if (i < 0 || i > 6) return null;
-  const day = activeDays[i];
-  return day ? { index: i, day } : null;
 }
 
 /* ---------- weekly recap ---------- */

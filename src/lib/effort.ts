@@ -1,7 +1,7 @@
 // Effort zones, run labels and warning flags. Pure functions, no network.
 
 import { clockLeftRunning, flagSplits, usableSplits, type SplitRow } from "./splitFlags";
-import { formatPace, type Zone } from "./training";
+import { type Zone } from "./training";
 
 /* ---------- run length ---------- */
 
@@ -186,8 +186,4 @@ export function weeklyEffortSummary(runs: FlagRun[], zones: Zone[]): string | nu
   return easy === withPace.length
     ? `${easy} of ${withPace.length} runs at easy pace (9:50–10:20)`
     : `${easy} of ${withPace.length} runs at easy pace (9:50–10:20) — slow easy days down`;
-}
-
-export function paceLabel(seconds: number | null | undefined): string {
-  return formatPace(seconds);
 }

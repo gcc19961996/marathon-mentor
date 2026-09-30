@@ -186,21 +186,6 @@ export function usableSplits(splits: FlaggedSplit[]): FlaggedSplit[] {
   return splits.filter((s) => !s.flag && !s.partial);
 }
 
-export function countFlags(splits: FlaggedSplit[]) {
-  return {
-    tooFast: splits.filter((s) => s.flag === "too_fast").length,
-    tooSlow: splits.filter((s) => s.flag === "too_slow").length,
-    gap: splits.filter((s) => s.flag === "gap").length,
-    total: splits.filter((s) => !!s.flag).length,
-  };
-}
-
-/** "1 suspect split excluded" / "3 suspect splits excluded" */
-export function excludedNote(count: number): string | null {
-  if (!count) return null;
-  return `${count} suspect split${count === 1 ? "" : "s"} excluded`;
-}
-
 export function formatStop(seconds: number): string {
   const s = Math.round(seconds);
   const m = Math.floor(s / 60);

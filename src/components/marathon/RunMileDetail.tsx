@@ -25,8 +25,6 @@ type DetailProps = {
   showToggle?: boolean;
 };
 
-type Segment = FlaggedSplit & { elevation: number | null };
-
 function weightedPace(splits: Pick<FlaggedSplit, "distance" | "moving">[]): number | null {
   const distance = splits.reduce((sum, split) => sum + split.distance, 0);
   if (!distance) return null;

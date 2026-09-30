@@ -416,11 +416,6 @@ export type SplitMile = { date: string; pace: number };
 
 export type SplitMiles = { miles: SplitMile[]; excluded: number; tooFast: number; tooSlow: number };
 
-/** Splits of one run that count for pace statistics. */
-export function runSplitPaces(run: AnalysisRun, splitsByActivity: SplitsByActivity): number[] {
-  return usableSplits(runFlaggedSplits(run, splitsByActivity)).map((s) => s.pace);
-}
-
 /**
  * Every per-mile split inside the range that can be trusted, with the date of
  * its run. Suspect splits keep their distance in mileage totals but are left

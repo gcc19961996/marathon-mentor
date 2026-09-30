@@ -1,0 +1,10 @@
+# Never upload local secrets, personal data or local build output with `vercel deploy`.
+.env
+.env.*
+!.env.example
+backups/
+node_modules/
+.vercel/
+.output/
+dist/
+supabase/.temp/

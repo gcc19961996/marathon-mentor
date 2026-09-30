@@ -614,12 +614,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      unlock_throttle: {
+        Row: {
+          failures: number;
+          id: number;
+          locked_until: string | null;
+          window_started: string | null;
+        };
+        Insert: {
+          failures?: number;
+          id?: number;
+          locked_until?: string | null;
+          window_started?: string | null;
+        };
+        Update: {
+          failures?: number;
+          id?: number;
+          locked_until?: string | null;
+          window_started?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
       bump_ai_usage: { Args: { max_per_day: number }; Returns: boolean };
+      clear_unlock_failures: { Args: never; Returns: undefined };
+      record_unlock_failure: {
+        Args: { lock_seconds: number; max_failures: number; window_seconds: number };
+        Returns: number;
+      };
+      unlock_wait_seconds: { Args: never; Returns: number };
     };
     Enums: {
       [_ in never]: never;

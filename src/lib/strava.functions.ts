@@ -119,9 +119,16 @@ export const completeStravaConnect = createServerFn({ method: "POST" })
     },
   );
 
+/**
+ * Records why a Strava connection attempt failed. Like completeStravaConnect it
+ * runs before the device is necessarily unlocked, so it only accepts the OAuth
+ * state value this app generated for the attempt.
+ */
 export const saveStravaConnectError = createServerFn({ method: "POST" })
-  .inputValidator((input: { message: string }) => input)
+  .inputValidator((input: { message: string; state?: string }) => input)
   .handler(async ({ data }) => {
+    const { consumeOauthState } = await import("./gate.server");
+    if (!(await consumeOauthState(data.state))) return { ok: false };
     const { saveConnection } = await import("./strava.server");
     await saveConnection({ last_error: data.message.slice(0, 500) });
     return { ok: true };

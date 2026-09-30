@@ -44,20 +44,20 @@ function StravaCallback() {
 
     if (error) {
       const message = `Strava said: ${error}. Nothing was changed.`;
-      void saveError({ data: { message } });
+      void saveError({ data: { message, state: oauthState } });
       setState({ kind: "error", message });
       return;
     }
     if (!code) {
       const message = "Strava did not send a code back. Try connecting again.";
-      void saveError({ data: { message } });
+      void saveError({ data: { message, state: oauthState } });
       setState({ kind: "error", message });
       return;
     }
     if (!scope.includes("activity:read_all")) {
       const message =
         "Strava needs permission to view your activities — connect again and tick that box.";
-      void saveError({ data: { message } });
+      void saveError({ data: { message, state: oauthState } });
       setState({
         kind: "error",
         message,
@@ -75,7 +75,9 @@ function StravaCallback() {
           kind: "ok",
           message:
             res.message ??
-            `Strava is connected — ${res.imported ?? 0} runs imported, ${res.matched ?? 0} matched to runs you already had.`,
+            (res.imported || res.matched
+              ? `Strava is connected — ${res.imported ?? 0} new runs imported, ${res.matched ?? 0} matched to runs you already had.`
+              : "Strava is connected — your run log is already up to date."),
         });
       })
       .catch((err: unknown) => {
@@ -84,7 +86,7 @@ function StravaCallback() {
           message: err instanceof Error ? err.message : "The connection failed.",
         });
       });
-  }, [complete]);
+  }, [complete, saveError]);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-4 p-8">

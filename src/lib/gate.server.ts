@@ -141,26 +141,54 @@ export function requireOwner(): AppRole {
 
 /* ---------- passcode attempt throttle ---------- */
 
+// 5 wrong passcodes within 15 minutes locks unlocking for 15 minutes. The
+// count lives in the database (unlock_throttle) so every server instance
+// shares it; memory is only a fallback if the database cannot be reached.
+const MAX_FAILURES = 5;
+const WINDOW_SECONDS = 15 * 60;
+const LOCK_SECONDS = 15 * 60;
+
 const attempts: number[] = [];
 let blockedUntil = 0;
 
-export function checkPasscodeThrottle(): number {
-  const now = Date.now();
-  if (blockedUntil > now) return Math.ceil((blockedUntil - now) / 1000);
-  return 0;
+async function throttleRpc<T>(name: string, args?: Record<string, number>): Promise<T | null> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.rpc(name as never, args as never);
+    if (error) throw error;
+    return data as T;
+  } catch (err) {
+    console.error(`[gate] ${name} failed; using in-memory throttle`, err);
+    return null;
+  }
 }
 
-export function recordPasscodeFailure() {
+/** Seconds until another passcode attempt is allowed (0 when allowed now). */
+export async function checkPasscodeThrottle(): Promise<number> {
+  const wait = await throttleRpc<number>("unlock_wait_seconds");
+  if (wait !== null) return wait;
   const now = Date.now();
-  while (attempts.length && now - (attempts[0] as number) > 10 * 60_000) attempts.shift();
+  return blockedUntil > now ? Math.ceil((blockedUntil - now) / 1000) : 0;
+}
+
+export async function recordPasscodeFailure(): Promise<void> {
+  const locked = await throttleRpc<number>("record_unlock_failure", {
+    max_failures: MAX_FAILURES,
+    window_seconds: WINDOW_SECONDS,
+    lock_seconds: LOCK_SECONDS,
+  });
+  if (locked !== null) return;
+  const now = Date.now();
+  while (attempts.length && now - (attempts[0] as number) > WINDOW_SECONDS * 1000) attempts.shift();
   attempts.push(now);
-  if (attempts.length >= 5) {
-    blockedUntil = now + 60_000;
+  if (attempts.length >= MAX_FAILURES) {
+    blockedUntil = now + LOCK_SECONDS * 1000;
     attempts.length = 0;
   }
 }
 
-export function clearPasscodeFailures() {
+export async function clearPasscodeFailures(): Promise<void> {
   attempts.length = 0;
   blockedUntil = 0;
+  await throttleRpc("clear_unlock_failures");
 }

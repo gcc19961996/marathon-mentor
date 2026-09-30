@@ -10,20 +10,25 @@ export const unlockDevice = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ passcode: z.string().max(200) }).parse(input))
   .handler(async ({ data }): Promise<UnlockResult> => {
     const gate = await import("./gate.server");
-    const wait = gate.checkPasscodeThrottle();
+    const wait = await gate.checkPasscodeThrottle();
     if (wait > 0) {
+      const minutes = Math.ceil(wait / 60);
+      const when =
+        wait > 90
+          ? `${minutes} minute${minutes === 1 ? "" : "s"}`
+          : `${wait} second${wait === 1 ? "" : "s"}`;
       return {
         ok: false,
-        message: `Too many tries. Wait ${wait} second${wait === 1 ? "" : "s"} and try again.`,
+        message: `Too many tries. Wait ${when} and try again.`,
         retryAfterSeconds: wait,
       };
     }
     const role = gate.roleForPasscode(data.passcode);
     if (!role) {
-      gate.recordPasscodeFailure();
+      await gate.recordPasscodeFailure();
       return { ok: false, message: "That passcode is not right." };
     }
-    gate.clearPasscodeFailures();
+    await gate.clearPasscodeFailures();
     const { token, expiresAt } = gate.mintToken(role);
     return { ok: true, token, role, expiresAt };
   });

@@ -105,6 +105,12 @@ const DATE_FIELDS = new Set([
   "longest_run_date",
 ]);
 
+// Text fields that may exceed the default 500 characters. Coach answers run
+// up to ~120 words, which regularly passed 500 and failed to save to history.
+const TEXT_LIMITS: Record<string, number> = {
+  answer: 4000,
+};
+
 function validateRow(row: Record<string, unknown>) {
   for (const [key, value] of Object.entries(row)) {
     if (value === null || value === undefined) continue;
@@ -121,8 +127,8 @@ function validateRow(row: Record<string, unknown>) {
         if (Number.isNaN(time)) throw new Error(`${key} is not a valid date.`);
         const year = new Date(time).getUTCFullYear();
         if (year < 2000 || year > 2100) throw new Error(`${key} is outside a sensible date range.`);
-      } else if (value.length > 500) {
-        throw new Error(`${key} is too long (500 characters maximum).`);
+      } else if (value.length > (TEXT_LIMITS[key] ?? 500)) {
+        throw new Error(`${key} is too long (${TEXT_LIMITS[key] ?? 500} characters maximum).`);
       }
     }
   }
@@ -135,7 +141,7 @@ function validateValues(values: DbOp["values"]) {
 }
 
 export const dbOp = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => OpSchema.parse(input))
+  .validator((input: unknown) => OpSchema.parse(input))
   .handler(async ({ data }): Promise<any> => {
     const gate = await import("./gate.server");
     if (data.action === "select") {

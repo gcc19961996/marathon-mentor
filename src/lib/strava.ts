@@ -63,6 +63,9 @@ export function useStravaAutoSync(connected: boolean | undefined) {
     done.current = true;
     localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
     sync.mutate();
+    // Runs once when the connection is known; the mutation object is new on
+    // every render and must not retrigger a sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
 }
 

@@ -29,6 +29,7 @@ import { SettingsPanel } from "./SettingsPanel";
 import { useDashboard } from "@/lib/dashboard";
 import { relativeTime, useStravaAutoSync, useStravaStatus } from "@/lib/strava";
 import { clearDeviceToken } from "@/lib/deviceToken";
+import { isoDate } from "@/lib/training";
 import type { LucideIcon } from "lucide-react";
 
 const TAB_KEY = "mtc-active-tab";
@@ -53,7 +54,7 @@ export function Dashboard({ role = "owner" }: { role?: "owner" | "viewer" }) {
   const [scrolled, setScrolled] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTarget, setSettingsTarget] = useState<"top" | "profile">("top");
-  const headerDate = new Date().toISOString().slice(0, 10);
+  const headerDate = isoDate();
   const headerWeek =
     [...d.planWeeks]
       .filter((week) => week.start_date <= headerDate)

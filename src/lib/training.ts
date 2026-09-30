@@ -308,6 +308,22 @@ export function isoDate(d: Date = nyToday()): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/**
+ * Adds whole days (or years) to a plain YYYY-MM-DD date. Works in UTC so the
+ * result is the same on any device, whatever its time zone.
+ */
+export function shiftISODate(date: string, days: number, years = 0): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCFullYear(d.getUTCFullYear() + years, d.getUTCMonth(), d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Monday on or before a plain YYYY-MM-DD date. */
+export function mondayOfISO(date: string): string {
+  const day = new Date(`${date}T00:00:00Z`).getUTCDay(); // 0 Sun
+  return shiftISODate(date, -((day + 6) % 7));
+}
+
 export function startOfWeek(d: Date = nyToday()): Date {
   const day = d.getDay(); // 0 Sun
   const diff = (day + 6) % 7; // Monday start

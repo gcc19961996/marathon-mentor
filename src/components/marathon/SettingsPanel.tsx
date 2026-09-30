@@ -27,7 +27,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { Dashboard } from "@/lib/dashboard";
 import { StravaCard } from "./StravaCard";
-import { DAY_NAMES, MARATHON_MI, formatDuration, formatPace, parseDuration } from "@/lib/training";
+import {
+  DAY_NAMES,
+  MARATHON_MI,
+  formatDuration,
+  formatPace,
+  isoDate,
+  parseDuration,
+} from "@/lib/training";
 
 const DISTANCES = [
   { label: "5K", mi: 3.10686 },
@@ -65,10 +72,16 @@ function SettingsForm({ d }: { d: Dashboard }) {
     setMileage(p.typical_weekly_mileage != null ? String(p.typical_weekly_mileage) : "");
     setDaysPerWeek(p.days_per_week != null ? String(p.days_per_week) : "");
     setLongDay(p.long_run_day ?? "Sun");
+    // Seed the form only when a different profile loads; refetches of the same
+    // record must not overwrite what is being typed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p?.id]);
 
   useEffect(() => {
     if (d.activeTarget) setTargetValue(formatDuration(d.activeTarget.target_seconds));
+    // Seed the form only when a different target loads; refetches of the same
+    // record must not overwrite what is being typed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d.activeTarget?.id]);
 
   const liveSeconds = parseDuration(time);
@@ -259,7 +272,7 @@ function SafetyNet({ d }: { d: Dashboard }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `marathon-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `marathon-backup-${isoDate()}.json`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Backup downloaded");

@@ -100,7 +100,7 @@ function checkAskRate() {
 }
 
 export const askCoach = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) =>
+  .validator((input: unknown) =>
     z.object({ question: z.string().min(1).max(500), context: ContextSchema }).parse(input),
   )
   .handler(async ({ data }) => {

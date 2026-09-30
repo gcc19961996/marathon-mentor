@@ -3,7 +3,7 @@
 
 import { EFFORT_BANDS, effortFor, isRaceRun, runLengthLabel, type EffortKey } from "./effort";
 import { flagSplits, usableSplits, type FlaggedSplit, type SplitRow } from "./splitFlags";
-import { MARATHON_MI } from "./training";
+import { MARATHON_MI, mondayOfISO, shiftISODate } from "./training";
 
 export type AnalysisRun = {
   id?: string;
@@ -39,9 +39,7 @@ export const RANGE_OPTIONS: { key: RangeKey; label: string; days: number }[] = [
 
 export function rangeStart(today: string, range: RangeKey): string {
   const days = RANGE_OPTIONS.find((o) => o.key === range)?.days ?? 92;
-  const d = new Date(`${today}T00:00:00`);
-  d.setDate(d.getDate() - days);
-  return d.toISOString().slice(0, 10);
+  return shiftISODate(today, -days);
 }
 
 export function inRange(runs: AnalysisRun[], from: string, to: string): AnalysisRun[] {
@@ -85,15 +83,11 @@ export type LikeForLikeRow = {
 const TEN_K_MI = 10000 / 1609.344;
 
 function shiftDate(date: string, days: number): string {
-  const d = new Date(`${date}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return shiftISODate(date, days);
 }
 
 function shiftYear(date: string, years: number): string {
-  const d = new Date(`${date}T00:00:00`);
-  d.setFullYear(d.getFullYear() + years);
-  return d.toISOString().slice(0, 10);
+  return shiftISODate(date, 0, years);
 }
 
 export function periodRangeLabel(from: string, to: string): string {
@@ -316,10 +310,7 @@ function typeOf(run: AnalysisRun): TrendType {
 }
 
 function mondayOf(date: string): string {
-  const d = new Date(`${date}T00:00:00`);
-  const shift = (d.getDay() + 6) % 7;
-  d.setDate(d.getDate() - shift);
-  return d.toISOString().slice(0, 10);
+  return mondayOfISO(date);
 }
 
 export type TrendPoint = {
@@ -386,20 +377,16 @@ export function paceTrend(
 export function periodsBetween(from: string, to: string, monthly: boolean): string[] {
   const out: string[] = [];
   if (monthly) {
-    const cursor = new Date(`${from.slice(0, 7)}-01T00:00:00`);
-    const end = new Date(`${to.slice(0, 7)}-01T00:00:00`);
+    const cursor = new Date(`${from.slice(0, 7)}-01T00:00:00Z`);
+    const end = new Date(`${to.slice(0, 7)}-01T00:00:00Z`);
     while (cursor <= end) {
       out.push(cursor.toISOString().slice(0, 7));
-      cursor.setMonth(cursor.getMonth() + 1);
+      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
     }
     return out;
   }
-  const cursor = new Date(`${mondayOf(from)}T00:00:00`);
-  const end = new Date(`${mondayOf(to)}T00:00:00`);
-  while (cursor <= end) {
-    out.push(cursor.toISOString().slice(0, 10));
-    cursor.setDate(cursor.getDate() + 7);
-  }
+  const end = mondayOf(to);
+  for (let week = mondayOf(from); week <= end; week = shiftISODate(week, 7)) out.push(week);
   return out;
 }
 
@@ -560,11 +547,7 @@ export function predictFromTraining(
   today: string,
   splitsByActivity?: SplitsByActivity,
 ): TrainingPrediction {
-  const since = (days: number) => {
-    const d = new Date(`${today}T00:00:00`);
-    d.setDate(d.getDate() - days);
-    return d.toISOString().slice(0, 10);
-  };
+  const since = (days: number) => shiftISODate(today, -days);
 
   const recent = runs.filter((r) => r.date >= since(84) && r.date <= today);
   const efforts = bestEfforts(recent, bestEffortRows, splitsByActivity);
@@ -624,10 +607,7 @@ export function predictionTrend(
   splitsByActivity?: SplitsByActivity,
 ): PredictionPoint[] {
   const out: PredictionPoint[] = [];
-  const cursor = new Date(`${mondayOf(from)}T00:00:00`);
-  const end = new Date(`${today}T00:00:00`);
-  while (cursor <= end) {
-    const asOf = cursor.toISOString().slice(0, 10);
+  for (let asOf = mondayOf(from); asOf <= today; asOf = shiftISODate(asOf, 7)) {
     const p = predictFromTraining(allRuns, bestEffortRows, asOf, splitsByActivity);
     if (p) {
       out.push({
@@ -639,7 +619,6 @@ export function predictionTrend(
         basis: p.basis,
       });
     }
-    cursor.setDate(cursor.getDate() + 7);
   }
   return out;
 }

@@ -58,7 +58,7 @@ export const getStravaAuthUrl = createServerFn({ method: "POST" }).handler(
 );
 
 export const saveStravaCredentials = createServerFn({ method: "POST" })
-  .inputValidator((input: { clientId: string; clientSecret: string }) => input)
+  .validator((input: { clientId: string; clientSecret: string }) => input)
   .handler(async ({ data }) => {
     (await import("./gate.server")).requireOwner();
     const { saveConnection } = await import("./strava.server");
@@ -76,7 +76,7 @@ export const saveStravaCredentials = createServerFn({ method: "POST" })
  * that this app generated a moment earlier.
  */
 export const completeStravaConnect = createServerFn({ method: "POST" })
-  .inputValidator((input: { code: string; scope?: string; state?: string }) => input)
+  .validator((input: { code: string; scope?: string; state?: string }) => input)
   .handler(
     async ({
       data,
@@ -125,7 +125,7 @@ export const completeStravaConnect = createServerFn({ method: "POST" })
  * state value this app generated for the attempt.
  */
 export const saveStravaConnectError = createServerFn({ method: "POST" })
-  .inputValidator((input: { message: string; state?: string }) => input)
+  .validator((input: { message: string; state?: string }) => input)
   .handler(async ({ data }) => {
     const { consumeOauthState } = await import("./gate.server");
     if (!(await consumeOauthState(data.state))) return { ok: false };

@@ -212,7 +212,10 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
   const comparisonAvailable =
     comparison !== "off" &&
     comparisonRunsRaw.filter((run) => run.distance_mi > 0 && run.duration_seconds > 0).length >= 3;
-  const comparisonRuns = comparisonAvailable ? comparisonRunsRaw : [];
+  const comparisonRuns = useMemo(
+    () => (comparisonAvailable ? comparisonRunsRaw : []),
+    [comparisonAvailable, comparisonRunsRaw],
+  );
   const currentFit = useMemo(
     () => fitPaceDistance(runs, effortNormalized),
     [runs, effortNormalized],
@@ -1214,7 +1217,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
 export function TrainingPrediction({ d, compact = false }: { d: Dashboard; compact?: boolean }) {
   const prediction = useMemo(
     () => predictFromTraining(d.runs, d.bestEffortRows, d.today, d.splitsByActivity),
-    [d.runs, d.bestEffortRows, d.today],
+    [d.runs, d.bestEffortRows, d.today, d.splitsByActivity],
   );
 
   if (!prediction) {

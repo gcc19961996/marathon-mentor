@@ -113,17 +113,16 @@ function LogRun({ d, prefillRun }: { d: Dashboard; prefillRun: number }) {
   const seconds = parseDuration(draft.time) ?? 0;
   const fastSeconds = parseDuration(draft.fast);
   const showFast = planned?.workout_type === "tempo" || planned?.workout_type === "mp";
-  useEffect(() => setFuelOpen(distance >= 10), [distance >= 10]);
+  // Fuelling opens by itself once the run reaches 10 miles.
+  const longEnoughToFuel = distance >= 10;
+  useEffect(() => setFuelOpen(longEnoughToFuel), [longEnoughToFuel]);
 
+  const todayPlannedMiles = d.todayRow ? String(Number(d.todayRow.target_miles)) : "";
   useEffect(() => {
     if (!prefillRun) return;
-    setDraft((x) => ({
-      ...x,
-      date: d.today,
-      miles: d.todayRow ? String(Number(d.todayRow.target_miles)) : "",
-    }));
+    setDraft((x) => ({ ...x, date: d.today, miles: todayPlannedMiles }));
     document.getElementById("log-run")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [prefillRun, d.today, d.todayRow?.id]);
+  }, [prefillRun, d.today, todayPlannedMiles]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -751,6 +750,9 @@ function Milestones({ d }: { d: Dashboard }) {
       const date = autoCompleteDate(row, d);
       if (date) m.update.mutate({ id: row.id, completed_date: date });
     }
+    // Deliberately narrow: `d` and the mutation object change on every render,
+    // and re-running on those would re-send the same updates in a loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d.milestones, d.runs.length, d.weeks]);
 
   const rows = useMemo(
@@ -974,9 +976,10 @@ function RunLog({ d }: { d: Dashboard }) {
   const duration = parseDuration(draft.duration) ?? 0;
   const pace = distance > 0 && duration > 0 ? Math.round(duration / distance) : null;
   const types = [...WORKOUT_TYPES.filter((t) => t !== "Rest"), "Race"];
+  const longEnoughToFuel = distance >= 10;
   useEffect(() => {
-    if (distance >= 10) setFuelOpen(true);
-  }, [distance >= 10]);
+    if (longEnoughToFuel) setFuelOpen(true);
+  }, [longEnoughToFuel]);
   const filteredRuns = useMemo(
     () =>
       d.runs.filter((run) => {
@@ -1371,10 +1374,8 @@ function RunLog({ d }: { d: Dashboard }) {
 }
 
 export function Splits({ d }: { d: Dashboard }) {
-  const splits = useMemo(
-    () => (d.activeTarget ? splitTable(d.activeTarget.target_seconds) : []),
-    [d.activeTarget?.target_seconds],
-  );
+  const targetSeconds = d.activeTarget?.target_seconds;
+  const splits = useMemo(() => (targetSeconds ? splitTable(targetSeconds) : []), [targetSeconds]);
   if (!splits.length) return <p className="text-sm text-muted-foreground">Set a target first.</p>;
   return (
     <>

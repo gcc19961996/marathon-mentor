@@ -7,7 +7,7 @@ export type UnlockResult =
   | { ok: false; message: string; retryAfterSeconds?: number };
 
 export const unlockDevice = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => z.object({ passcode: z.string().max(200) }).parse(input))
+  .validator((input: unknown) => z.object({ passcode: z.string().max(200) }).parse(input))
   .handler(async ({ data }): Promise<UnlockResult> => {
     const gate = await import("./gate.server");
     const wait = await gate.checkPasscodeThrottle();

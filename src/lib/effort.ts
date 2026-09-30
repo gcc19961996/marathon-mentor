@@ -1,7 +1,7 @@
 // Effort zones, run labels and warning flags. Pure functions, no network.
 
 import { clockLeftRunning, flagSplits, usableSplits, type SplitRow } from "./splitFlags";
-import { type Zone } from "./training";
+import { shiftISODate, type Zone } from "./training";
 
 /* ---------- run length ---------- */
 
@@ -68,11 +68,7 @@ export type FlagRun = {
   max_speed_mph?: number | null;
 };
 
-const dayBefore = (date: string) => {
-  const d = new Date(`${date}T00:00:00`);
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
-};
+const dayBefore = (date: string) => shiftISODate(date, -1);
 
 const PLAN_START = "2026-09-14";
 
@@ -139,9 +135,7 @@ export function runFlags(
     if (fastYesterday) flags.push("Back-to-back fast days");
   }
 
-  const from = new Date(`${run.date}T00:00:00`);
-  from.setDate(from.getDate() - 14);
-  const windowStart = from.toISOString().slice(0, 10);
+  const windowStart = shiftISODate(run.date, -14);
   const longestBefore = allRuns
     .filter((r) => !isRaceRun(r) && r.date >= windowStart && r.date < run.date)
     .reduce((m, r) => Math.max(m, Number(r.distance_mi)), 0);

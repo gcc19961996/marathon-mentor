@@ -134,6 +134,8 @@ function TodaySection({ d, onLogRun }: { d: Dashboard; onLogRun: () => void }) {
   const tomorrowMatch = tomorrow ? d.weekMatch.byPlanDate.get(tomorrow.date) : null;
   const tomorrowDone = tomorrowMatch?.done && tomorrowMatch.run ? tomorrowMatch.run : null;
   const alreadyDone = d.todayAlreadyDone;
+  // Today's planned run is logged: lead with what was run, not the plan.
+  const ranToday = !alreadyDone && row && d.todayRun ? d.todayRun : null;
   const alreadyDoneType = typeLabel(row?.workout_type ?? "long");
   return (
     <section className="surface-card workout-easy overflow-hidden border-l-4">
@@ -152,6 +154,32 @@ function TodaySection({ d, onLogRun }: { d: Dashboard; onLogRun: () => void }) {
           <>
             <AlreadyDone run={alreadyDone} workout={alreadyDoneType} />
             <div className="mt-4">
+              <CheckinRow d={d} collapsed />
+            </div>
+          </>
+        ) : row && ranToday ? (
+          <>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <span className="workout-chip workout-easy">{typeLabel(row.workout_type)}</span>
+                <p className="stat-figure mt-3 text-5xl font-bold text-foreground">
+                  {Number(ranToday.distance_mi).toFixed(1)} mi
+                </p>
+              </div>
+              <div className="text-right text-sm text-muted-foreground">
+                <p className="font-semibold">Planned {Number(row.target_miles)} mi</p>
+                <p>{row.pace_target}</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <DoneToday d={d} />
+            </div>
+            <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+              {d.todayBullets.slice(0, 3).map((b) => (
+                <li key={b}>· {formatBulletDate(b)}</li>
+              ))}
+            </ul>
+            <div className="mt-6 border-t border-border pt-4">
               <CheckinRow d={d} collapsed />
             </div>
           </>
@@ -203,21 +231,17 @@ function TodaySection({ d, onLogRun }: { d: Dashboard; onLogRun: () => void }) {
               ))}
           </>
         )}
-        {!alreadyDone && (
+        {!alreadyDone && !ranToday && (
           <div className="mt-6 border-t border-border pt-4">
             <CheckinRow d={d} />
           </div>
         )}
-        {!alreadyDone && (
+        {!alreadyDone && !ranToday && (
           <div className="mt-5">
             {row ? (
-              d.todayRun ? (
-                <DoneToday d={d} />
-              ) : (
-                <Button variant="secondary" className="h-9 rounded-md" onClick={onLogRun}>
-                  Log this run
-                </Button>
-              )
+              <Button variant="secondary" className="h-9 rounded-md" onClick={onLogRun}>
+                Log this run
+              </Button>
             ) : (
               <CrossTrainingRow d={d} />
             )}
@@ -271,7 +295,7 @@ function DoneToday({ d }: { d: Dashboard }) {
   return (
     <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
       <Check className="size-5 text-success" aria-hidden />
-      Done · {Number(run.distance_mi).toFixed(1)} mi · {formatPace(run.avg_pace_seconds)}
+      Done · {formatPace(run.avg_pace_seconds)}
       {effort && (
         <span
           title={`${effortRangeLabel(effort)} per mile`}
@@ -288,25 +312,28 @@ function CheckinRow({ d, collapsed = false }: { d: Dashboard; collapsed?: boolea
   const save = useSaveCheckin(d.userId);
   const c = d.checkin;
   const [editing, setEditing] = useState(!collapsed && !c);
-  const [legs, setLegs] = useState(String(c?.leg_feel ?? 3));
-  const [sleep, setSleep] = useState(String(c?.sleep_quality ?? 3));
+  const [legs, setLegs] = useState(c?.leg_feel == null ? "" : String(c.leg_feel));
+  const [sleep, setSleep] = useState(c?.sleep_quality == null ? "" : String(c.sleep_quality));
   const [whoop, setWhoop] = useState(
     c?.whoop_recovery_pct == null ? "" : String(c.whoop_recovery_pct),
   );
   const [note, setNote] = useState(c?.pain_note ?? "");
   useEffect(() => {
     if (c) {
-      setLegs(String(c.leg_feel ?? 3));
-      setSleep(String(c.sleep_quality ?? 3));
+      setLegs(c.leg_feel == null ? "" : String(c.leg_feel));
+      setSleep(c.sleep_quality == null ? "" : String(c.sleep_quality));
       setWhoop(c.whoop_recovery_pct == null ? "" : String(c.whoop_recovery_pct));
       setNote(c.pain_note ?? "");
     }
+    // Seed the form only when a different check-in loads; refetches of the same
+    // record must not overwrite what is being typed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [c?.id]);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     await save.mutateAsync({
-      leg_feel: Number(legs),
-      sleep_quality: Number(sleep),
+      leg_feel: legs === "" ? null : Number(legs),
+      sleep_quality: sleep === "" ? null : Number(sleep),
       whoop_recovery_pct: whoop === "" ? null : Number(whoop),
       pain_note: note || null,
       computed_min_mi: d.todayRange.minMi,
@@ -316,17 +343,14 @@ function CheckinRow({ d, collapsed = false }: { d: Dashboard; collapsed?: boolea
     setEditing(false);
     toast.success("Check-in saved");
   }
-  if (!editing && collapsed)
-    return (
-      <Button variant="link" className="h-auto px-0 text-sm" onClick={() => setEditing(true)}>
-        Add check-in
-      </Button>
-    );
+  const empty = legs === "" && sleep === "" && whoop === "" && note === "";
   if (!editing && c)
     return (
       <div className="flex items-center justify-between gap-3 text-sm">
         <p>
-          <span className="font-semibold">Morning check-in</span> · Legs {legs} · Sleep {sleep}
+          <span className="font-semibold">Morning check-in</span>
+          {legs ? ` · Legs ${legs}` : ""}
+          {sleep ? ` · Sleep ${sleep}` : ""}
           {whoop ? ` · WHOOP ${whoop}%` : ""}
           {note ? ` · ${note}` : ""}
         </p>
@@ -334,6 +358,12 @@ function CheckinRow({ d, collapsed = false }: { d: Dashboard; collapsed?: boolea
           Edit
         </Button>
       </div>
+    );
+  if (!editing && collapsed)
+    return (
+      <Button variant="link" className="h-auto px-0 text-sm" onClick={() => setEditing(true)}>
+        Add check-in
+      </Button>
     );
   return (
     <form className="flex flex-wrap items-end gap-3" onSubmit={submit}>
@@ -354,6 +384,7 @@ function CheckinRow({ d, collapsed = false }: { d: Dashboard; collapsed?: boolea
               (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)
             }
           >
+            <option value="">–</option>
             {[1, 2, 3, 4, 5].map((n) => (
               <option key={n}>{n}</option>
             ))}
@@ -383,7 +414,9 @@ function CheckinRow({ d, collapsed = false }: { d: Dashboard; collapsed?: boolea
           placeholder="Optional"
         />
       </div>
-      <Button type="submit">Save</Button>
+      <Button type="submit" disabled={empty || save.isPending}>
+        Save
+      </Button>
     </form>
   );
 }
@@ -820,6 +853,9 @@ function RaceWeekChecklist({ d }: { d: Dashboard }) {
     void seed.mutateAsync(
       CHECKLIST.map((x, i) => ({ ...x, sort_order: i, note: "", item_date: null, checked: false })),
     );
+    // Seeds once per page load (guarded by `seeded`); the mutation object is
+    // new on every render and must not retrigger it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, items.isLoading, items.data?.length]);
   if (!active || dismissed || !(items.data ?? []).length) return null;
   return (

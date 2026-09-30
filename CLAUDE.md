@@ -39,6 +39,17 @@ Use **bun** for installs (the lockfile is `bun.lock`); scripts run on Node.
 Names are listed in `.env.example`. Local values live in `.env.local` (gitignored). The old `.env`
 points at Lovable's database and is overridden by `.env.local`.
 
+## Deploy
+- Live site: https://marathon-mentor-nine.vercel.app (Vercel project `gc-1996/marathon-mentor`).
+  Local folder is linked via `.vercel/project.json`.
+- Deploy from this folder: `npx vercel deploy --prod --yes` (preview: omit `--prod`; preview URLs
+  sit behind Vercel login). `.vercelignore` keeps `.env*` and `backups/` out of uploads.
+- Vercel Hobby rejects CLI deploys unless the latest commit's author email is the Vercel account's
+  email (gcc.crawford1@gmail.com).
+- Env vars live in Vercel (`npx vercel env ls`). Production `PUBLIC_ORIGIN` is the live URL and must
+  match Strava's Authorization Callback Domain (strava.com/settings/api). `SUPABASE_DB_URL` is
+  local-only and is not stored in Vercel.
+
 ## Git
 - Branches: `main` = pre-migration snapshot; migration work happens on `migration`.
 - Never commit `.env*` (except `.env.example`) or `backups/` (personal training data).

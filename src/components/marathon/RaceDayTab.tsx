@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { Dashboard } from "@/lib/dashboard";
 import { formatPace } from "@/lib/training";
-import { Collapsible, FuelingNotes, PlanRules, Splits, TargetSummary } from "./ProgressTab";
+import { Collapsible, FuelingNotes, PlanRules, TargetSummary } from "./ProgressTab";
+import { RacePacing } from "./RacePacing";
 import { TrainingPrediction } from "./TrainingPrediction";
 
 const CHECKPOINT_DATE = "2026-09-29";
@@ -15,12 +16,7 @@ export function RaceDayTab({ d }: { d: Dashboard }) {
         <TrainingPrediction d={d} compact />
       </section>
 
-      <section>
-        <h3 className="section-kicker mb-4">Race-day splits</h3>
-        <div>
-          <Splits d={d} />
-        </div>
-      </section>
+      <RacePacing d={d} />
       <Collapsible title="Fueling notes">
         <FuelingNotes d={d} />
       </Collapsible>

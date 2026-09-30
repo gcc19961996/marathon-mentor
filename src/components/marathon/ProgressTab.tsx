@@ -46,13 +46,11 @@ import {
 } from "@/lib/effort";
 import { relativeTime, useStravaStatus, useStravaSync } from "@/lib/strava";
 import {
-  MARATHON_MI,
   WORKOUT_TYPES,
   formatDuration,
   formatPace,
   isoDate,
   parseDuration,
-  splitTable,
   startOfWeek,
 } from "@/lib/training";
 
@@ -66,7 +64,7 @@ export function ProgressTab({ d, prefillRun = 0 }: { d: Dashboard; prefillRun?: 
       <RunLog d={d} />
       <MileageChart d={d} />
       <Milestones d={d} />
-      <CompletedWeeks d={d} />
+      <PastWeeks d={d} />
       <Collapsible title="Pace zones">
         <p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">
           Your plan paces
@@ -1381,39 +1379,6 @@ function RunLog({ d }: { d: Dashboard }) {
   );
 }
 
-export function Splits({ d }: { d: Dashboard }) {
-  const targetSeconds = d.activeTarget?.target_seconds;
-  const splits = useMemo(() => (targetSeconds ? splitTable(targetSeconds) : []), [targetSeconds]);
-  if (!splits.length) return <p className="text-sm text-muted-foreground">Set a target first.</p>;
-  return (
-    <>
-      <p className="text-xs text-muted-foreground">
-        Cumulative time. Course-adjusted allows for the bridges and the Fifth Avenue climb, and
-        never runs ahead of even pace before 30K. Target pace{" "}
-        {formatPace(d.activeTarget!.target_seconds / MARATHON_MI)}.
-      </p>
-      <table className="mt-2 w-full text-sm tnum">
-        <thead>
-          <tr className="text-left text-xs uppercase tracking-widest text-muted-foreground">
-            <th className="py-2">Point</th>
-            <th className="py-2">Even</th>
-            <th className="py-2">Course-adjusted</th>
-          </tr>
-        </thead>
-        <tbody>
-          {splits.map((s) => (
-            <tr key={s.label} className="border-t border-border/60">
-              <td className="py-1.5 font-medium">{s.label}</td>
-              <td className="py-1.5">{formatDuration(s.even)}</td>
-              <td className="py-1.5">{formatDuration(s.adjusted)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </>
-  );
-}
-
 function PasteRuns({ d }: { d: Dashboard }) {
   const addRuns = useAddRuns(d.userId);
   const planDays = usePlanDayMutations(d.userId);
@@ -1587,20 +1552,43 @@ export function PlanRules() {
   );
 }
 
-function CompletedWeeks({ d }: { d: Dashboard }) {
-  if (!d.completedWeeks.length) return null;
+const WEEK_STATUS_STYLE: Record<string, string> = {
+  complete: "bg-success/15 text-success",
+  partial: "bg-caution/20 text-caution-foreground",
+  missed: "bg-destructive/10 text-destructive",
+  "in progress": "bg-accent/15 text-accent",
+};
+
+const WEEK_STATUS_LABEL: Record<string, string> = {
+  complete: "✓ Complete",
+  partial: "Partial",
+  missed: "Missed",
+  "in progress": "In progress",
+};
+
+function PastWeeks({ d }: { d: Dashboard }) {
+  if (!d.pastWeeks.length) return null;
   return (
     <section>
-      <h3 className="section-kicker mb-4">Completed weeks</h3>
+      <h3 className="section-kicker mb-4">Past weeks</h3>
       <ul className="divide-y divide-border/60 overflow-hidden rounded-xl bg-card shadow-card">
-        {d.completedWeeks.map(({ week, match }) => (
+        {d.pastWeeks.map(({ week, match, status, done, total }) => (
           <li
             key={week.id}
-            className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm"
+            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-sm"
           >
-            <span className="font-medium">Week of {formatRunDate(match.weekStart, false)}</span>
+            <span className="flex items-center gap-2">
+              <span className="font-medium">
+                Week {week.week_number} · {formatRunDate(match.weekStart, false)}
+              </span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${WEEK_STATUS_STYLE[status] ?? ""}`}
+              >
+                {WEEK_STATUS_LABEL[status]}
+              </span>
+            </span>
             <span className="text-muted-foreground tnum">
-              {match.actualMi} / {match.plannedMi} mi
+              {match.actualMi} / {match.plannedMi} mi · {done} of {total} workouts
               {match.longestRun
                 ? ` · longest ${Number(match.longestRun.distance_mi).toFixed(1)} mi`
                 : ""}

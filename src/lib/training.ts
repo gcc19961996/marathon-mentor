@@ -1,7 +1,6 @@
 // Pure training math + rules. No AI, no network.
 
 export const MARATHON_MI = 26.2188;
-export const HALF_MI = 13.1094;
 
 export type WorkoutType =
   | "Easy Run"
@@ -207,84 +206,6 @@ export function enforceZoneOrder(zones: Zone[], mp: number): Zone[] {
       return { ...z, from, to };
     }
     return z;
-  });
-}
-
-/* ---------- race-day splits ---------- */
-
-/**
- * Relative per-mile effort factors for the NYC course:
- * up the Verrazzano (mile 1) then the downslope, the Queensboro climb (mile 15–16),
- * fast on First Avenue (17–19), and the slow last 5K through Central Park.
- */
-const NYC_MILE_FACTORS = [
-  1.05, 1.05, 1.02, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.01, 1.04, 1.04, 0.97, 0.97,
-  0.98, 0.99, 1.0, 1.01, 1.04, 1.05, 1.04, 1.03, 1.02,
-];
-
-function cumulativeTimeAt(distanceMi: number, targetSeconds: number, adjusted: boolean): number {
-  if (!adjusted) return targetSeconds * (distanceMi / MARATHON_MI);
-  const factors = NYC_MILE_FACTORS;
-  let weighted = 0;
-  const totalWeighted = factors.reduce((acc, f, i) => {
-    const len = Math.min(1, MARATHON_MI - i);
-    return acc + (len > 0 ? f * len : 0);
-  }, 0);
-  let remaining = distanceMi;
-  for (let i = 0; i < factors.length && remaining > 0; i++) {
-    const len = Math.min(1, MARATHON_MI - i, remaining);
-    if (len <= 0) break;
-    weighted += (factors[i] ?? 1) * len;
-    remaining -= len;
-  }
-  return targetSeconds * (weighted / totalWeighted);
-}
-
-export type SplitRow = { label: string; distanceMi: number; even: number; adjusted: number };
-
-export function splitTable(targetSeconds: number): SplitRow[] {
-  const rows: SplitRow[] = [];
-  const kmToMi = 0.621371;
-  for (let k = 5; k <= 40; k += 5) {
-    const mi = k * kmToMi;
-    rows.push({
-      label: `${k}K`,
-      distanceMi: mi,
-      even: cumulativeTimeAt(mi, targetSeconds, false),
-      // NYC strategy is deliberately conservative: never bank time before 30K.
-      adjusted:
-        k <= 30
-          ? Math.max(
-              cumulativeTimeAt(mi, targetSeconds, true),
-              cumulativeTimeAt(mi, targetSeconds, false),
-            )
-          : cumulativeTimeAt(mi, targetSeconds, true),
-    });
-    if (k === 20) {
-      rows.push({
-        label: "Half",
-        distanceMi: HALF_MI,
-        even: cumulativeTimeAt(HALF_MI, targetSeconds, false),
-        adjusted: Math.max(
-          cumulativeTimeAt(HALF_MI, targetSeconds, true),
-          cumulativeTimeAt(HALF_MI, targetSeconds, false),
-        ),
-      });
-    }
-  }
-  rows.push({
-    label: "Finish",
-    distanceMi: MARATHON_MI,
-    even: targetSeconds,
-    adjusted: targetSeconds,
-  });
-  const sorted = rows.sort((a, b) => a.distanceMi - b.distanceMi);
-  // Never bank time before 30K; 35K and 40K sit ~30s behind even for the Fifth Avenue climb.
-  const thirtyK = 30 * 0.621371;
-  return sorted.map((r) => {
-    if (r.label === "35K" || r.label === "40K") return { ...r, adjusted: r.even + 30 };
-    if (r.distanceMi < thirtyK) return { ...r, adjusted: Math.max(r.adjusted, r.even) };
-    return r;
   });
 }
 

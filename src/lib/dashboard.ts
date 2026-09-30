@@ -13,7 +13,7 @@ import {
   type Run,
 } from "./data";
 import { fixedTodayRange, weekPlanDays, weekRowsFor } from "./fixedPlan";
-import { matchWeek, type WeekMatch } from "./planMatch";
+import { matchWeek, weekStatus, type WeekMatch } from "./planMatch";
 import { useBestEfforts, useRunSplits } from "./data";
 import type { SplitRow } from "./splitFlags";
 import {
@@ -156,10 +156,13 @@ export function useDashboard() {
     const todayAlreadyDone =
       todayMatch?.done && todayMatch.run && todayMatch.run.date !== today ? todayMatch.run : null;
 
-    const completedWeeks = planWeeks
+    // Every plan week so far, newest first, with how it went.
+    const pastWeeks = planWeeks
       .filter((w) => w.start_date <= weekStart)
-      .map((w) => ({ week: w, match: matchWeek(planDays, runs, w.start_date) }))
-      .filter((x) => x.match.complete)
+      .map((w) => {
+        const match = matchWeek(planDays, runs, w.start_date);
+        return { week: w, match, ...weekStatus(match, w.start_date === weekStart) };
+      })
       .sort((a, b) => b.week.start_date.localeCompare(a.week.start_date));
 
     // Next milestone still to come.
@@ -282,7 +285,7 @@ export function useDashboard() {
       lastWeekMatch,
       todayMatch,
       todayAlreadyDone,
-      completedWeeks,
+      pastWeeks,
     };
   }, [
     profileQ.data,

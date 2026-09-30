@@ -41,7 +41,10 @@ Use **bun** for installs (the lockfile is `bun.lock`); scripts run on Node.
   local times.
 - **Tabs:** Weekly Plan loads up front; Progress, Pace Analysis and Race Day are `React.lazy` in
   `Dashboard.tsx`. Pace Analysis sections fold on phones (`Fold` / `useFoldedOnPhone`).
-- **Protected metrics:** the race-day split table, check-in scaling, plan matching and the
+- **Race Day pacing:** `src/lib/nycCourse.ts` holds the NYC course mile by mile (borough, note,
+  effort factor). Mile splits and the 5K/half checkpoints both come from it (even effort, sums to
+  the goal). `RacePacing.tsx` adds the goal-time slider (defaults to the target, explores only).
+- **Protected metrics:** the NYC course checkpoints, check-in scaling, plan matching and the
   training prediction are pinned by tests. The prediction (`predictFromTraining`) is Riegel from the
   best recent 10K/5K, multiplied by smooth endurance/volume factors (`enduranceFactor`, `volumeFactor`); it
   read 4:21:22 on 2026-09-30. Run log totals must not move unless a change intends it.

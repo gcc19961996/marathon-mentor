@@ -6,6 +6,12 @@
       "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
       "runtimeArgs": ["--env-file=.env.local", "node_modules/vite/bin/vite.js", "dev"],
       "port": 8080
+    },
+    {
+      "name": "dev-live-readonly",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["--env-file=.env.production.local", "node_modules/vite/bin/vite.js", "dev"],
+      "port": 8080
     }
   ]
 }

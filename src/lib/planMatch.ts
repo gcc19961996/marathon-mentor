@@ -129,6 +129,21 @@ export function movedRunNote(row: PlanDayRow): string {
   return `${typeLabel(row.workout_type)}, planned ${DAY_NAMES[i]}`;
 }
 
+export type WeekStatus = "in progress" | "complete" | "partial" | "missed";
+
+/** How a plan week went: every workout done, some done, or nothing run. */
+export function weekStatus(
+  week: WeekMatch,
+  isCurrent: boolean,
+): { status: WeekStatus; done: number; total: number } {
+  const total = week.matches.length;
+  const done = week.matches.filter((m) => m.done).length;
+  if (isCurrent && !week.complete) return { status: "in progress", done, total };
+  if (week.complete) return { status: "complete", done, total };
+  if (done === 0 && week.actualMi === 0) return { status: "missed", done, total };
+  return { status: "partial", done, total };
+}
+
 /** Whether a week contains a matched long run (used by the skipped-long-run rule). */
 export function hasMatchedLongRun(week: WeekMatch): boolean {
   const long = week.matches.filter((m) => m.row.workout_type === "long");

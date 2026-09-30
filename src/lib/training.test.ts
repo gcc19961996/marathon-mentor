@@ -1,12 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  formatDuration,
-  formatPace,
-  mondayOfISO,
-  parseDuration,
-  shiftISODate,
-  splitTable,
-} from "./training";
+import { formatDuration, formatPace, mondayOfISO, parseDuration, shiftISODate } from "./training";
 
 describe("time formatting", () => {
   it("parses h:mm:ss, mm:ss and bare minutes", () => {
@@ -49,37 +42,6 @@ describe("shiftISODate / mondayOfISO", () => {
       expect(shiftISODate("2026-11-01", 1)).toBe("2026-11-02");
       expect(shiftISODate("2026-09-29", -14)).toBe("2026-09-15");
       expect(mondayOfISO("2026-10-04")).toBe("2026-09-28");
-    }
-  });
-});
-
-describe("race-day splits for a 4:15:00 target", () => {
-  // Pinned to the Race Day tab as it shipped (even / course-adjusted).
-  const expected: [string, string, string][] = [
-    ["5K", "0:30:13", "0:31:02"],
-    ["10K", "1:00:26", "1:00:55"],
-    ["15K", "1:30:39", "1:30:48"],
-    ["20K", "2:00:52", "2:00:52"],
-    ["Half", "2:07:30", "2:07:30"],
-    ["25K", "2:31:05", "2:31:15"],
-    ["30K", "3:01:18", "3:01:18"],
-    ["35K", "3:31:31", "3:32:01"],
-    ["40K", "4:01:44", "4:02:14"],
-    ["Finish", "4:15:00", "4:15:00"],
-  ];
-
-  it("matches the published split table", () => {
-    const rows = splitTable(15300).map((r) => [
-      r.label,
-      formatDuration(r.even),
-      formatDuration(r.adjusted),
-    ]);
-    expect(rows).toEqual(expected);
-  });
-
-  it("never runs ahead of even pace before 30K", () => {
-    for (const r of splitTable(15300)) {
-      if (r.distanceMi < 30 * 0.621371) expect(r.adjusted).toBeGreaterThanOrEqual(r.even);
     }
   });
 });

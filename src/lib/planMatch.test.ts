@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlanDayRow, Run } from "./data";
-import { hasMatchedLongRun, matchWeek } from "./planMatch";
+import { hasMatchedLongRun, matchWeek, weekStatus } from "./planMatch";
 
 const WEEK = "2026-09-28"; // Monday
 
@@ -67,6 +67,25 @@ describe("matching runs to the plan", () => {
       WEEK,
     );
     expect(m).toMatchObject({ complete: true, plannedMi: 27, actualMi: 28.1, runCount: 3 });
+  });
+
+  it("labels each week complete, partial, missed or in progress", () => {
+    const all = [run("a", "2026-09-28", 5), run("b", "2026-09-29", 16), run("c", "2026-10-01", 6)];
+    expect(weekStatus(matchWeek(week, all, WEEK), false)).toEqual({
+      status: "complete",
+      done: 3,
+      total: 3,
+    });
+    // The travel week: a 3.5 mi run against a 6 mi tempo is under 75%.
+    const travel = [plan("tue", "2026-09-22", "tempo", 6), plan("fri", "2026-09-25", "easy", 5)];
+    expect(
+      weekStatus(matchWeek(travel, [run("x", "2026-09-22", 3.5)], "2026-09-21"), false),
+    ).toEqual({ status: "partial", done: 0, total: 2 });
+    expect(weekStatus(matchWeek(travel, [], "2026-09-21"), false).status).toBe("missed");
+    expect(weekStatus(matchWeek(week, [run("b", "2026-09-29", 16)], WEEK), true).status).toBe(
+      "in progress",
+    );
+    expect(weekStatus(matchWeek(week, all, WEEK), true).status).toBe("complete");
   });
 
   it("knows whether the week's long run was covered", () => {

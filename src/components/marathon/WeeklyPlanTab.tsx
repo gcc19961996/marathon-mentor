@@ -241,7 +241,7 @@ function TodaySection({ d, onLogRun }: { d: Dashboard; onLogRun: () => void }) {
         {!alreadyDone && !ranToday && (
           <div className="mt-5">
             {row ? (
-              <Button variant="secondary" className="h-9 rounded-md" onClick={onLogRun}>
+              <Button variant="secondary" onClick={onLogRun}>
                 Log this run
               </Button>
             ) : (
@@ -268,11 +268,8 @@ function WeekSummary({ d }: { d: Dashboard }) {
           of {d.plannedWeekMi} mi
         </p>
       </div>
-      <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-accent transition-[width]"
-          style={{ width: `${percent}%` }}
-        />
+      <div className="mt-5 h-3 overflow-hidden bg-muted">
+        <div className="h-full bg-accent transition-[width]" style={{ width: `${percent}%` }} />
       </div>
       <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
         <span className="text-muted-foreground">Workouts</span>
@@ -301,7 +298,7 @@ function DoneToday({ d }: { d: Dashboard }) {
       {effort && (
         <span
           title={`${effortRangeLabel(effort)} per mile`}
-          className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent"
+          className="flag-tag bg-accent text-accent-foreground"
         >
           {effort}
         </span>
@@ -508,10 +505,10 @@ function ThisWeek({ d }: { d: Dashboard }) {
                   onClick={() => setExpanded(open ? null : date)}
                   aria-expanded={open}
                 >
-                  <span className="flex items-start justify-between gap-2 border-b border-border pb-3 text-sm font-semibold">
+                  <span className="flex items-start justify-between gap-2 border-b-2 border-foreground pb-3 text-sm font-black uppercase tracking-wide">
                     <span>
                       {DAY_NAMES[i]}{" "}
-                      <span className="block text-xs font-normal text-muted-foreground">
+                      <span className="block text-xs font-semibold tracking-normal text-muted-foreground">
                         {date.slice(5).replace("-", "/")}
                       </span>
                     </span>
@@ -558,9 +555,7 @@ function ThisWeek({ d }: { d: Dashboard }) {
                       </span>
                     )}
                     {matchedRun && match?.moved && (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                        moved
-                      </span>
+                      <span className="flag-tag bg-foreground text-background">moved</span>
                     )}
                     {matchedRun && !match?.moved && (
                       <span className="text-sm font-medium">
@@ -581,31 +576,24 @@ function ThisWeek({ d }: { d: Dashboard }) {
                           {Number(run.distance_mi).toFixed(1)} mi ·{" "}
                           {formatPace(run.avg_pace_seconds)}
                         </span>
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                          Extra
-                        </span>
+                        <span className="flag-tag bg-foreground text-background">Extra</span>
                       </>
                     )}
                     {!movedHere && effort && (
                       <span
                         title={`${effortRangeLabel(effort)} per mile`}
-                        className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent"
+                        className="flag-tag bg-accent text-accent-foreground"
                       >
                         {effort}
                       </span>
                     )}
                     {shownRun && isRaceRun(shownRun) && (
-                      <span className="rounded-full bg-caution px-2 py-0.5 text-xs font-semibold text-caution-foreground">
-                        Race
-                      </span>
+                      <span className="flag-tag bg-caution text-caution-foreground">Race</span>
                     )}
                     {!movedHere &&
                       shownRun &&
                       runFlags(shownRun, d.runs, d.trainingZones, d.splitsByActivity).map((f) => (
-                        <span
-                          key={f}
-                          className="rounded-full bg-caution px-2 py-0.5 text-xs font-semibold text-caution-foreground"
-                        >
+                        <span key={f} className="flag-tag bg-caution text-caution-foreground">
                           {f}
                         </span>
                       ))}
@@ -633,16 +621,12 @@ function ThisWeek({ d }: { d: Dashboard }) {
           </p>
         )}
       </div>
-      <Button
-        className="mt-4 h-9 rounded-md"
-        variant="secondary"
-        onClick={() => setAdjustOpen(true)}
-      >
+      <Button className="mt-4" variant="secondary" onClick={() => setAdjustOpen(true)}>
         Adjust this week
       </Button>
       {next && (
         <details className="mt-6">
-          <summary className="cursor-pointer text-sm font-semibold">
+          <summary className="cursor-pointer">
             Next week · {next.phase} · {Number(next.target_miles)} mi
           </summary>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">

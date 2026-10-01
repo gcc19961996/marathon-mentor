@@ -344,8 +344,8 @@ function RunChips({ chips }: { chips: { label: string; warning?: boolean; toolti
           title={chip.tooltip}
           className={
             chip.warning
-              ? "whitespace-nowrap rounded-full bg-caution px-2 py-0.5 text-xs font-semibold text-caution-foreground"
-              : "whitespace-nowrap rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent"
+              ? "whitespace-nowrap flag-tag bg-caution text-caution-foreground"
+              : "whitespace-nowrap flag-tag bg-accent text-accent-foreground"
           }
         >
           {chip.label}
@@ -354,7 +354,7 @@ function RunChips({ chips }: { chips: { label: string; warning?: boolean; toolti
       {hidden.length > 0 && !expanded && (
         <button
           type="button"
-          className={`shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold ${TAP}`}
+          className={`shrink-0 flag-tag bg-foreground text-background ${TAP}`}
           title={hidden.map((chip) => chip.tooltip ?? chip.label).join(" · ")}
           aria-label={`Show ${hidden.length} more labels`}
           onClick={(event) => {
@@ -451,11 +451,11 @@ function FilterPill({
   return (
     <button
       type="button"
-      className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-40 ${active ? "border-sidebar bg-sidebar text-sidebar-foreground" : "border-border bg-transparent text-muted-foreground hover:border-foreground hover:text-foreground"}`}
+      className={`inline-flex h-8 items-center gap-1.5 rounded-none border-2 px-3 text-[11px] font-extrabold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-40 ${active ? "border-sidebar bg-sidebar text-sidebar-foreground" : "border-foreground bg-transparent text-foreground hover:bg-caution"}`}
       aria-pressed={active}
       onClick={onClick}
     >
-      {dot && <span className={`size-2 rounded-full ${dot}`} aria-hidden />}
+      {dot && <span className={`size-2 ${dot}`} aria-hidden />}
       {label}
     </button>
   );
@@ -800,7 +800,7 @@ function Milestones({ d }: { d: Dashboard }) {
                       </span>
                     )}
                     {overdue && (
-                      <span className="ml-2 rounded-full bg-caution px-2 py-0.5 text-xs font-semibold text-caution-foreground">
+                      <span className="ml-2 flag-tag bg-caution text-caution-foreground">
                         Overdue
                       </span>
                     )}
@@ -1581,9 +1581,7 @@ function PastWeeks({ d }: { d: Dashboard }) {
               <span className="font-medium">
                 Week {week.week_number} · {formatRunDate(match.weekStart, false)}
               </span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${WEEK_STATUS_STYLE[status] ?? ""}`}
-              >
+              <span className={`flag-tag ${WEEK_STATUS_STYLE[status] ?? ""}`}>
                 {WEEK_STATUS_LABEL[status]}
               </span>
             </span>

@@ -39,18 +39,18 @@ export function AskBar({ d, daysAvailable }: { d: Dashboard; daysAvailable: stri
   }
 
   return (
-    <section className="surface-card p-6">
+    <section className="surface-card poster-field p-6">
       <form className="flex flex-col gap-3 sm:flex-row" onSubmit={ask}>
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            className="h-12 pl-9 text-base"
+            className="h-12 pl-10 text-base"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ask a training question…"
           />
         </div>
-        <Button type="submit" className="px-6" disabled={busy}>
+        <Button type="submit" className="h-12 px-7" disabled={busy}>
           {busy ? "Thinking…" : "Ask"}
         </Button>
       </form>

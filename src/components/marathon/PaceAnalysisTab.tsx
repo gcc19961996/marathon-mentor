@@ -256,7 +256,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
               key={o.key}
               type="button"
               onClick={() => setRange(o.key)}
-              className={`h-7 rounded-full border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${range === o.key ? "border-sidebar bg-sidebar text-sidebar-foreground" : "border-border bg-transparent text-muted-foreground hover:border-foreground hover:text-foreground"}`}
+              className={`h-8 rounded-none border-2 px-3 text-[11px] font-extrabold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${range === o.key ? "border-sidebar bg-sidebar text-sidebar-foreground" : "border-foreground bg-transparent text-foreground hover:bg-caution"}`}
             >
               {o.label}
             </button>
@@ -399,19 +399,17 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                         </td>
                         <td className="px-3 py-2">
                           {r.verdict === "faded" && (
-                            <span className="rounded-full bg-caution px-2 py-0.5 text-xs font-semibold text-caution-foreground">
+                            <span className="flag-tag bg-caution text-caution-foreground">
                               Faded
                             </span>
                           )}
                           {r.verdict === "negative" && (
-                            <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success-emphasis">
+                            <span className="flag-tag bg-accent text-accent-foreground">
                               Negative split
                             </span>
                           )}
                           {r.verdict === "even" && (
-                            <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success-emphasis">
-                              Even
-                            </span>
+                            <span className="flag-tag bg-accent text-accent-foreground">Even</span>
                           )}
                           {run && rows.length > 0 && (
                             <RunMileDetail
@@ -463,7 +461,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
           </div>
         ) : (
           <>
-            <div className="flex h-6 w-full overflow-hidden rounded-full">
+            <div className="flex h-6 w-full overflow-hidden">
               {mix
                 .filter((s) => s.miles > 0)
                 .map((s) => (
@@ -479,7 +477,7 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
                 .filter((s) => s.miles > 0)
                 .map((s) => (
                   <span key={s.zone} className="flex items-center gap-1.5">
-                    <span className="size-2.5 rounded-full" style={{ background: s.color }} />
+                    <span className="size-2.5" style={{ background: s.color }} />
                     {s.zone} {s.miles} mi · {s.pct}%
                   </span>
                 ))}

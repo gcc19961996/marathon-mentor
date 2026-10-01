@@ -138,9 +138,9 @@ function TodaySection({ d, onLogRun }: { d: Dashboard; onLogRun: () => void }) {
   const ranToday = !alreadyDone && row && d.todayRun ? d.todayRun : null;
   const alreadyDoneType = typeLabel(row?.workout_type ?? "long");
   return (
-    <section className="surface-card workout-easy overflow-hidden border-l-4">
+    <section className="surface-card poster-field overflow-hidden text-center">
       <div className="border-b border-border px-5 py-3 sm:px-7">
-        <h2 className="text-xs font-bold uppercase text-muted-foreground">
+        <h2 className="section-kicker">
           Today ·{" "}
           {new Date(`${d.today}T12:00:00`).toLocaleDateString(undefined, {
             weekday: "long",
@@ -159,14 +159,14 @@ function TodaySection({ d, onLogRun }: { d: Dashboard; onLogRun: () => void }) {
           </>
         ) : row && ranToday ? (
           <>
-            <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-col items-center gap-3">
               <div>
                 <span className="workout-chip workout-easy">{typeLabel(row.workout_type)}</span>
-                <p className="stat-figure mt-3 text-5xl font-bold text-foreground">
+                <p className="stat-figure mt-3 text-6xl font-black text-foreground sm:text-7xl">
                   {Number(ranToday.distance_mi).toFixed(1)} mi
                 </p>
               </div>
-              <div className="text-right text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 <p className="font-semibold">Planned {Number(row.target_miles)} mi</p>
                 <p>{row.pace_target}</p>
               </div>
@@ -185,14 +185,14 @@ function TodaySection({ d, onLogRun }: { d: Dashboard; onLogRun: () => void }) {
           </>
         ) : row ? (
           <>
-            <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-col items-center gap-3">
               <div>
                 <span className="workout-chip workout-easy">{typeLabel(row.workout_type)}</span>
-                <p className="stat-figure mt-3 text-5xl font-bold text-foreground">
+                <p className="stat-figure mt-3 text-6xl font-black text-foreground sm:text-7xl">
                   {Number(row.target_miles)} mi
                 </p>
               </div>
-              <div className="text-right text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 <p className="font-semibold">
                   {d.todayRange.minMi}–{d.todayRange.maxMi} mi
                 </p>
@@ -212,7 +212,9 @@ function TodaySection({ d, onLogRun }: { d: Dashboard; onLogRun: () => void }) {
         ) : (
           <>
             <span className="workout-chip workout-rest">Rest</span>
-            <p className="stat-figure mt-3 text-4xl font-bold text-foreground">Rest day</p>
+            <p className="stat-figure mt-3 text-5xl font-black uppercase text-foreground sm:text-6xl">
+              Rest day
+            </p>
             {tomorrow &&
               (tomorrowDone ? (
                 <p className="mt-3 text-sm font-medium">

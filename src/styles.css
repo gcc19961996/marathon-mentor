@@ -5,13 +5,15 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Marathon Companion design system — calm, athletic, paper-cool.
- * All colours are oklch tokens. Never hardcode colours in components.
+ * Marathon Companion design system, after the MoMA "Summergarden" poster:
+ * cream paper, a cobalt field, cut-paper green leaves, a white moon and
+ * sunflower-yellow type. Flat colour, square corners, heavy grotesque type.
+ * Never hardcode colours in components; use the tokens below.
  */
 
 @theme inline {
-  --font-display: "Barlow Condensed", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Libre Franklin", "Franklin Gothic Medium", "Arial Narrow", sans-serif;
+  --font-sans: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -62,97 +64,84 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-header-foreground: var(--header-foreground);
 
-  --shadow-card: 0 1px 2px oklch(0.2 0.03 220 / 0.05), 0 8px 24px oklch(0.2 0.03 220 / 0.06);
-  --shadow-lift: 0 2px 6px oklch(0.2 0.03 220 / 0.08), 0 18px 40px oklch(0.2 0.03 220 / 0.1);
+  --shadow-card: none;
+  --shadow-lift: none;
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.972 0.009 83);
-  --foreground: oklch(0.24 0.04 255);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.028 235);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.028 235);
-  --primary: oklch(0.47 0.093 189);
-  --primary-foreground: oklch(0.985 0.005 200);
-  --secondary: oklch(0.948 0.012 205);
-  --secondary-foreground: oklch(0.3 0.03 220);
-  --muted: oklch(0.955 0.01 205);
-  --muted-foreground: #5b6475;
-  --primary: #f26430;
+  /* The poster's colours. */
+  --paper: #f3ecdc;
+  --cobalt: #1d4fb4;
+  --leaf: #11873b;
+  --sun: #fbbf2d;
+  --moon: #fffdf6;
+  --ink: #14224a;
+
+  --radius: 0.125rem;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--moon);
+  --card-foreground: var(--ink);
+  --popover: var(--moon);
+  --popover-foreground: var(--ink);
+  --primary: var(--cobalt);
   --primary-foreground: #ffffff;
-  --accent: #2a9d8f;
+  --secondary: #e9dfc8;
+  --secondary-foreground: var(--ink);
+  --muted: #ece3cf;
+  --muted-foreground: #525d78;
+  --accent: var(--leaf);
   --accent-foreground: #ffffff;
-  --destructive: #d1495b;
-  --destructive-foreground: oklch(0.99 0.003 60);
-  --success: #2a9d8f;
-  --success-foreground: oklch(0.99 0.003 60);
-  --success-soft: oklch(0.94 0.06 155);
-  --success-emphasis: oklch(0.32 0.11 155);
-  --caution: #e9a23b;
-  --caution-foreground: #14213d;
-  --border: #e6e1d8;
-  --input: oklch(0.905 0.012 210);
-  --ring: oklch(0.47 0.093 189);
-  --chart-1: #2a9d8f;
-  --chart-2: #f26430;
-  --header-foreground: #ffffff;
-  --chart-3: oklch(0.6 0.12 155);
-  --chart-4: oklch(0.62 0.07 235);
-  --chart-5: oklch(0.79 0.14 85);
-  --sidebar: oklch(0.235 0.045 258);
-  --sidebar-foreground: oklch(0.96 0.01 85);
-  --sidebar-primary: oklch(0.66 0.19 43);
-  --sidebar-primary-foreground: oklch(0.99 0.005 80);
-  --sidebar-accent: oklch(0.33 0.06 254);
-  --sidebar-accent-foreground: oklch(0.99 0.005 80);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.7 0.16 43);
+  --destructive: #c8372d;
+  --destructive-foreground: #ffffff;
+  --success: var(--leaf);
+  --success-foreground: #ffffff;
+  --success-soft: #d9eed9;
+  --success-emphasis: #0b5e29;
+  --caution: var(--sun);
+  --caution-foreground: var(--ink);
+  --border: #d9cdb2;
+  --input: #c9bc9d;
+  --ring: var(--cobalt);
+  --header-foreground: var(--moon);
+  --chart-1: var(--leaf);
+  --chart-2: var(--cobalt);
+  --chart-3: #7cc48a;
+  --chart-4: #7fa2e8;
+  --chart-5: var(--sun);
+  --sidebar: var(--cobalt);
+  --sidebar-foreground: var(--moon);
+  --sidebar-primary: var(--sun);
+  --sidebar-primary-foreground: var(--ink);
+  --sidebar-accent: #163f96;
+  --sidebar-accent-foreground: var(--sun);
+  --sidebar-border: oklch(1 0 0 / 22%);
+  --sidebar-ring: var(--sun);
 }
 
-.dark {
-  --background: #0e1526;
-  --foreground: #f1eee8;
-  --card: #172036;
-  --card-foreground: oklch(0.96 0.008 205);
-  --popover: oklch(0.235 0.025 235);
-  --popover-foreground: oklch(0.96 0.008 205);
-  --primary: oklch(0.72 0.11 185);
-  --primary-foreground: oklch(0.19 0.022 235);
-  --secondary: oklch(0.29 0.028 235);
-  --secondary-foreground: oklch(0.96 0.008 205);
-  --muted: oklch(0.29 0.028 235);
-  --muted-foreground: #9aa3b5;
-  --primary: #ff7a45;
-  --primary-foreground: #0e1526;
-  --accent: #3cc4b4;
-  --accent-foreground: #0e1526;
-  --destructive: #d1495b;
-  --destructive-foreground: oklch(0.99 0.003 60);
-  --success: #3cc4b4;
-  --success-foreground: oklch(0.19 0.022 235);
-  --success-soft: oklch(0.34 0.06 160);
-  --success-emphasis: oklch(0.9 0.09 155);
-  --caution: oklch(0.82 0.13 85);
-  --caution-foreground: oklch(0.25 0.04 80);
-  --border: #26304a;
-  --input: oklch(1 0 0 / 16%);
-  --ring: #ff7a45;
-  --header-foreground: #ffffff;
-  --chart-1: oklch(0.72 0.11 185);
-  --chart-2: oklch(0.74 0.15 50);
-  --chart-3: oklch(0.68 0.12 155);
-  --chart-4: oklch(0.7 0.07 235);
-  --chart-5: oklch(0.82 0.13 85);
-  --sidebar: oklch(0.235 0.025 235);
-  --sidebar-foreground: oklch(0.96 0.008 205);
-  --sidebar-primary: oklch(0.72 0.11 185);
-  --sidebar-primary-foreground: oklch(0.19 0.022 235);
-  --sidebar-accent: oklch(0.29 0.028 235);
-  --sidebar-accent-foreground: oklch(0.96 0.008 205);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.72 0.11 185);
+/*
+ * A blue poster panel. Everything inside reads the same tokens, re-pointed:
+ * white headlines, yellow supporting text, yellow buttons.
+ */
+.poster-field {
+  --background: var(--cobalt);
+  --foreground: var(--moon);
+  --card: var(--cobalt);
+  --card-foreground: var(--moon);
+  --primary: var(--sun);
+  --primary-foreground: var(--ink);
+  --secondary: var(--sun);
+  --secondary-foreground: var(--ink);
+  --muted: #163f96;
+  --muted-foreground: var(--sun);
+  --border: oklch(1 0 0 / 28%);
+  --input: oklch(1 0 0 / 45%);
+  --ring: var(--sun);
+  --success-emphasis: #bff0c4;
+  --destructive: #ffd0c8;
+  background-color: var(--cobalt);
+  color: var(--moon);
+  border-color: var(--cobalt);
 }
 
 @layer base {
@@ -172,113 +161,138 @@
   h3,
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: 0;
+    letter-spacing: -0.015em;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 800;
   }
 }
 
 @utility stat-figure {
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
+  letter-spacing: -0.03em;
 }
 
-@utility header-gradient {
-  background: linear-gradient(120deg, #14213d, #3d348b);
-}
-@utility progress-gradient {
-  background: linear-gradient(90deg, #2a9d8f, #f26430);
-}
 @utility section-title {
   font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.625rem;
+  font-weight: 900;
+  line-height: 1.05;
 }
 @utility section-kicker {
   font-family: var(--font-display);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--color-muted-foreground);
+  color: var(--muted-foreground);
 }
 @utility workout-chip {
   display: inline-flex;
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 0.2rem 0.55rem;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 @utility phase-badge {
   display: inline-flex;
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 0.25rem 0.65rem;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
+/* Workout colours: flat poster fills. --workout-ink is the text on top. */
+[class*="workout-"] {
+  --workout-ink: #ffffff;
+}
 .workout-easy {
-  --workout: #2a9d8f;
+  --workout: var(--leaf);
   border-left-color: var(--workout);
 }
 .workout-long {
-  --workout: #3d348b;
+  --workout: var(--cobalt);
   border-left-color: var(--workout);
 }
 .workout-tempo {
-  --workout: #f26430;
+  --workout: var(--sun);
+  --workout-ink: var(--ink);
   border-left-color: var(--workout);
 }
 .workout-mp {
-  --workout: #d1495b;
+  --workout: #c8372d;
   border-left-color: var(--workout);
 }
 .workout-strides {
-  --workout: #e9a23b;
+  --workout: #8fd19e;
+  --workout-ink: var(--ink);
   border-left-color: var(--workout);
 }
 .workout-shakeout {
-  --workout: #7fb7be;
+  --workout: #9db8ee;
+  --workout-ink: var(--ink);
   border-left-color: var(--workout);
 }
 .workout-race {
-  --workout: #f4b400;
+  --workout: var(--ink);
+  --workout-ink: var(--sun);
   border-left-color: var(--workout);
 }
 .workout-rest {
-  --workout: #a0a7b4;
+  --workout: #cfc4a8;
+  --workout-ink: var(--ink);
   border-left-color: var(--workout);
 }
 .workout-chip[class*="workout-"] {
-  background: color-mix(in srgb, var(--workout) 16%, transparent);
-  color: color-mix(in srgb, var(--workout) 76%, var(--foreground));
+  background: var(--workout);
+  color: var(--workout-ink);
 }
-.dark .workout-chip[class*="workout-"] {
-  color: color-mix(in srgb, var(--workout) 75%, white);
+.poster-field .workout-chip[class*="workout-"] {
+  background: var(--moon);
+  color: var(--cobalt);
 }
 .phase-build {
-  background: #2a9d8f;
+  background: var(--leaf);
   color: #ffffff;
 }
 .phase-recovery {
-  background: #5da9e9;
-  color: #14213d;
+  background: #9db8ee;
+  color: var(--ink);
 }
 .phase-peak {
-  background: #f26430;
+  background: #c8372d;
   color: #ffffff;
 }
 .phase-taper {
-  background: #7b6cf6;
+  background: var(--cobalt);
   color: #ffffff;
 }
 .phase-race-week {
-  background: #f4b400;
-  color: #14213d;
+  background: var(--ink);
+  color: var(--sun);
 }
-.dark .header-gradient {
-  background: linear-gradient(120deg, #0b1020, #2d2670);
+
+/* Cut-paper leaves. leaf-field tiles a whole area; leaf-band is one strip. */
+@utility leaf-field {
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='%2317a04a'%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(6 18) rotate(-28)'/%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(40 10) rotate(35)'/%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(46 44) rotate(-62)'/%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(8 42) rotate(22)'/%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(24 62) rotate(-12)'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 72px 72px;
+}
+@utility leaf-band {
+  height: 40px;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='124' height='28' viewBox='0 0 124 28'%3E%3Cg fill='%2317a04a'%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(5 18) rotate(-20)'/%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(34 9) rotate(18)'/%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(64 19) rotate(-24)'/%3E%3Cpath d='M0 0C5-8 17-9 24 0 17 8 5 8 0 0Z' transform='translate(94 10) rotate(14)'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 177px 40px;
+  background-repeat: repeat-x;
+  background-position: center;
 }
 
 @utility tnum {
@@ -286,9 +300,9 @@
 }
 
 @utility surface-card {
-  background-color: var(--color-card);
-  color: var(--color-card-foreground);
-  border: 1px solid var(--color-border);
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }

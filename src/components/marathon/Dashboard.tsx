@@ -5,6 +5,7 @@ import {
   Flag,
   Gauge,
   Lock,
+  Moon,
   Settings,
   UserRound,
 } from "lucide-react";
@@ -123,9 +124,14 @@ export function Dashboard({ role = "owner" }: { role?: "owner" | "viewer" }) {
       >
         <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-8">
           <div className="flex h-16 min-w-0 items-center">
-            <div className="flex min-w-0 items-center gap-4">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-4">
+              <Moon
+                className="size-6 shrink-0 -rotate-12 fill-current"
+                strokeWidth={0}
+                aria-hidden
+              />
               <p
-                className="whitespace-nowrap font-display text-lg font-bold uppercase"
+                className="whitespace-nowrap font-display text-lg font-black uppercase"
                 title="Marathon Training Companion"
               >
                 <span className="min-[640px]:hidden">MTC</span>
@@ -136,7 +142,7 @@ export function Dashboard({ role = "owner" }: { role?: "owner" | "viewer" }) {
                 {d.profile?.race_name ?? "Marathon"}
               </p>
             </div>
-            <div className="ml-auto flex shrink-0 items-center gap-2 md:gap-6">
+            <div className="ml-auto flex shrink-0 items-center gap-2 pl-3 md:gap-6">
               <div className="text-right leading-tight">
                 <p className="text-[9px] font-semibold uppercase text-sidebar-foreground/55">
                   Stage
@@ -161,7 +167,7 @@ export function Dashboard({ role = "owner" }: { role?: "owner" | "viewer" }) {
                     className="h-10 min-w-10 gap-2 px-1.5 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground sm:px-2"
                     aria-label="Open George's profile menu"
                   >
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary font-sans text-sm font-bold text-primary-foreground">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-sidebar-primary font-sans text-sm font-black text-sidebar-primary-foreground">
                       G
                     </span>
                     <span className="hidden text-left leading-tight xl:block">
@@ -224,7 +230,7 @@ export function Dashboard({ role = "owner" }: { role?: "owner" | "viewer" }) {
               <TabsTrigger
                 key={value}
                 value={value}
-                className="h-full rounded-none border-b-2 border-transparent px-0 text-sm font-semibold text-sidebar-foreground/70 shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-sidebar-accent-foreground data-[state=active]:shadow-none"
+                className="h-full rounded-none border-b-2 border-transparent px-0 text-sm font-bold uppercase tracking-wide text-sidebar-foreground/80 shadow-none data-[state=active]:border-sidebar-primary data-[state=active]:bg-transparent data-[state=active]:text-sidebar-accent-foreground data-[state=active]:shadow-none"
               >
                 {label}
                 {note && <span className="ml-1 text-[10px] font-medium">{note}</span>}
@@ -245,7 +251,7 @@ export function Dashboard({ role = "owner" }: { role?: "owner" | "viewer" }) {
             <TabsTrigger
               key={value}
               value={value}
-              className="h-full min-w-0 flex-col gap-1 rounded-none border-t-2 border-transparent px-1 text-[10px] font-semibold text-sidebar-foreground/65 shadow-none data-[state=active]:border-primary data-[state=active]:bg-sidebar-accent data-[state=active]:text-sidebar-accent-foreground data-[state=active]:shadow-none"
+              className="h-full min-w-0 flex-col gap-1 rounded-none border-t-2 border-transparent px-1 text-[10px] font-semibold text-sidebar-foreground/65 shadow-none data-[state=active]:border-sidebar-primary data-[state=active]:bg-sidebar-accent data-[state=active]:text-sidebar-accent-foreground data-[state=active]:shadow-none"
             >
               <Icon className="size-4" aria-hidden />
               <span className="max-w-full truncate">
@@ -256,6 +262,7 @@ export function Dashboard({ role = "owner" }: { role?: "owner" | "viewer" }) {
         </TabsList>
       </nav>
       <main className="min-h-screen">
+        <div className="leaf-band" aria-hidden />
         <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-8 lg:py-8">
           <TabsContent value="weekly" className="mt-0">
             <WeeklyPlanTab

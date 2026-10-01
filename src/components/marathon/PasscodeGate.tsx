@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { unlockDevice, checkDeviceToken } from "@/lib/gate.functions";
@@ -63,14 +64,25 @@ export function PasscodeGate({ children }: { children: (role: AppRole) => React.
   if (role) return <>{children(role)}</>;
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <form onSubmit={submit} className="surface-card w-full max-w-sm p-6">
-        <h1 className="font-display text-2xl font-bold">Enter passcode</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          This training dashboard is private. This device stays unlocked for 90 days.
+    <main className="leaf-field flex min-h-screen p-7 sm:p-11">
+      <form
+        onSubmit={submit}
+        className="poster-field flex flex-1 flex-col items-center justify-center px-6 py-12 text-center"
+      >
+        <Moon className="size-16 -rotate-12 fill-current" strokeWidth={0} aria-hidden />
+        <h1 className="mt-6 font-display text-4xl font-black uppercase leading-[0.95] sm:text-6xl">
+          Marathon
+          <br />
+          Training
+          <br />
+          Companion
+        </h1>
+        <p className="mt-6 max-w-xs text-sm font-semibold text-muted-foreground">
+          This training dashboard is private. Enter the passcode; this device stays unlocked for 90
+          days.
         </p>
         <Input
-          className="mt-5"
+          className="mt-6 max-w-xs bg-card text-center text-foreground placeholder:text-foreground/60"
           type="password"
           autoComplete="current-password"
           value={passcode}
@@ -79,7 +91,11 @@ export function PasscodeGate({ children }: { children: (role: AppRole) => React.
           aria-label="Passcode"
         />
         {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
-        <Button type="submit" className="mt-4 w-full" disabled={busy || !passcode}>
+        <Button
+          type="submit"
+          className="mt-4 w-full max-w-xs font-bold uppercase"
+          disabled={busy || !passcode}
+        >
           {busy ? "Checking…" : "Unlock"}
         </Button>
       </form>

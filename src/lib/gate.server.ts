@@ -23,7 +23,8 @@ function sessionConfig() {
     cookie: {
       httpOnly: true,
       secure,
-      sameSite: (secure ? "none" : "lax") as "none" | "lax",
+      // Lax is enough: Strava returns with a top-level redirect to this site.
+      sameSite: "lax" as const,
       path: "/",
     },
   };

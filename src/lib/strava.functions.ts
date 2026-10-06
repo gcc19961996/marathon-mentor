@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
 export type StravaStatus = {
   configured: boolean;
@@ -58,7 +59,14 @@ export const getStravaAuthUrl = createServerFn({ method: "POST" }).handler(
 );
 
 export const saveStravaCredentials = createServerFn({ method: "POST" })
-  .validator((input: { clientId: string; clientSecret: string }) => input)
+  .validator((input: { clientId: string; clientSecret: string }) =>
+    z
+      .object({
+        clientId: z.string().trim().min(1).max(100),
+        clientSecret: z.string().trim().min(1).max(200),
+      })
+      .parse(input),
+  )
   .handler(async ({ data }) => {
     (await import("./gate.server")).requireOwner();
     const { saveConnection } = await import("./strava.server");
@@ -76,7 +84,15 @@ export const saveStravaCredentials = createServerFn({ method: "POST" })
  * that this app generated a moment earlier.
  */
 export const completeStravaConnect = createServerFn({ method: "POST" })
-  .validator((input: { code: string; scope?: string; state?: string }) => input)
+  .validator((input: { code: string; scope?: string; state?: string }) =>
+    z
+      .object({
+        code: z.string().max(200),
+        scope: z.string().max(200).optional(),
+        state: z.string().max(64).optional(),
+      })
+      .parse(input),
+  )
   .handler(
     async ({
       data,
@@ -125,7 +141,9 @@ export const completeStravaConnect = createServerFn({ method: "POST" })
  * state value this app generated for the attempt.
  */
 export const saveStravaConnectError = createServerFn({ method: "POST" })
-  .validator((input: { message: string; state?: string }) => input)
+  .validator((input: { message: string; state?: string }) =>
+    z.object({ message: z.string().max(500), state: z.string().max(64).optional() }).parse(input),
+  )
   .handler(async ({ data }) => {
     const { consumeOauthState } = await import("./gate.server");
     if (!(await consumeOauthState(data.state))) return { ok: false };

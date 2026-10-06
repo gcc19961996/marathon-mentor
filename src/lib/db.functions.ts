@@ -21,18 +21,25 @@ const TABLES = [
   "plan_weeks",
 ] as const;
 
+// Column and conflict names are plain identifiers, so a caller can't slip
+// extra query parameters (or, select, limit) in through them.
+const Ident = z.string().regex(/^[a-z_][a-z0-9_]*$/);
+
 const OpSchema = z.object({
   table: z.enum(TABLES),
   action: z.enum(["select", "insert", "update", "upsert", "delete"]),
-  columns: z.string().optional(),
+  columns: z
+    .string()
+    .regex(/^[a-z0-9_*, ]+$/)
+    .optional(),
   values: z
     .union([z.record(z.string(), z.unknown()), z.array(z.record(z.string(), z.unknown()))])
     .optional(),
-  match: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+  match: z.record(Ident, z.union([z.string(), z.number(), z.boolean()])).optional(),
   order: z
     .array(
       z.object({
-        column: z.string(),
+        column: Ident,
         ascending: z.boolean().optional(),
         nullsFirst: z.boolean().optional(),
       }),
@@ -40,7 +47,10 @@ const OpSchema = z.object({
     .optional(),
   limit: z.number().int().positive().max(5000).optional(),
   single: z.boolean().optional(),
-  onConflict: z.string().optional(),
+  onConflict: z
+    .string()
+    .regex(/^[a-z_][a-z0-9_,]*$/)
+    .optional(),
   ignoreDuplicates: z.boolean().optional(),
 });
 

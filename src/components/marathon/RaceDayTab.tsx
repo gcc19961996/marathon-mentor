@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { Dashboard } from "@/lib/dashboard";
 import { formatPace } from "@/lib/training";
-import { Collapsible, FuelingNotes, PlanRules, TargetSummary } from "./ProgressTab";
+import { PlanRules, TargetSummary } from "./ProgressTab";
+import { RaceFuelingNotes } from "./RaceFuelingNotes";
 import { RacePacing } from "./RacePacing";
 import { TrainingPrediction } from "./TrainingPrediction";
 
@@ -17,9 +18,7 @@ export function RaceDayTab({ d }: { d: Dashboard }) {
       </section>
 
       <RacePacing d={d} />
-      <Collapsible title="Fueling notes">
-        <FuelingNotes d={d} />
-      </Collapsible>
+      <RaceFuelingNotes d={d} />
       <section id="plan-rules" className="scroll-mt-6">
         <h3 className="section-kicker mb-4">Plan rules</h3>
         <div>

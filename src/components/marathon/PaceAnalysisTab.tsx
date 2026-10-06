@@ -15,6 +15,7 @@ import type { Dashboard } from "@/lib/dashboard";
 import { RunMileDetail, runDetailStats } from "@/components/marathon/RunMileDetail";
 import { TrainingPrediction } from "@/components/marathon/TrainingPrediction";
 import { WeeklyMilesPace } from "@/components/marathon/WeeklyMilesPace";
+import { FlagLegend } from "@/components/marathon/FlagLegend";
 import { formatDuration, formatPace } from "@/lib/training";
 import {
   RANGE_OPTIONS,
@@ -283,6 +284,8 @@ export function PaceAnalysisTab({ d }: { d: Dashboard }) {
           )}
         </p>
       </section>
+
+      <FlagLegend />
 
       {/* summary */}
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-5">

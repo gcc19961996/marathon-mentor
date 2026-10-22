@@ -67,7 +67,8 @@ export function PasscodeGate({ children }: { children: (role: AppRole) => React.
       <form onSubmit={submit} className="surface-card w-full max-w-sm p-6">
         <h1 className="font-display text-2xl font-bold">Enter passcode</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          This training dashboard is private. This device stays unlocked for 90 days.
+          A personal NYC Marathon training dashboard: weekly plan, Strava runs, pace analysis and
+          race-day pacing. Enter the passcode to view it; this device stays unlocked for 90 days.
         </p>
         <Input
           className="mt-5"

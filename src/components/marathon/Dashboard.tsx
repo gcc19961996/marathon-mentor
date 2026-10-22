@@ -46,7 +46,7 @@ const TABS = ["weekly", "progress", "pace", "raceday"];
 const NAV_ITEMS: Array<{ value: string; label: string; note?: string; icon: LucideIcon }> = [
   { value: "weekly", label: "Weekly Plan", icon: CalendarDays },
   { value: "progress", label: "Progress", icon: ChartNoAxesCombined },
-  { value: "pace", label: "Pace Analysis", note: "(beta)", icon: Gauge },
+  { value: "pace", label: "Pace Analysis", icon: Gauge },
   { value: "raceday", label: "Race Day", icon: Flag },
 ];
 

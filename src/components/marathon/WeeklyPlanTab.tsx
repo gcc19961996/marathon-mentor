@@ -101,6 +101,7 @@ export function WeeklyPlanTab({
   return (
     <div className="space-y-6">
       <div className="space-y-3">
+        <RaceCountdown days={d.days} />
         <WeekCompleteCard d={d} />
         {recap && <MondayRecap d={d} recap={recap} />}
         {hold && <HoldBanner d={d} hold={hold} />}
@@ -841,6 +842,27 @@ const CHECKLIST = [
   { key: "breakfast", label: "Breakfast plan and timing" },
   { key: "pace", label: "Pace plan: first 2 miles ~10:05, then 9:44" },
 ];
+/** A one-line countdown with the main reminder for the last two weeks. */
+function RaceCountdown({ days }: { days: number }) {
+  if (days < 0 || days > 14) return null;
+  const tip =
+    days === 0
+      ? "Race day. Trust the plan and start easy."
+      : days <= 7
+        ? "Race week: easy runs only, carbs up from Thursday, no alcohol from Wednesday night, lay out your kit Saturday."
+        : "Taper: keep runs easy, sleep more, and try nothing new.";
+  return (
+    <section className="rounded-xl bg-sidebar p-4 text-sidebar-foreground">
+      <p className="font-display text-2xl font-bold">
+        {days === 0 ? "Today's the day" : `${days} ${days === 1 ? "day" : "days"} to race day`}
+      </p>
+      <p className="mt-1 text-sm text-sidebar-foreground/80">
+        {tip} Pacing and fueling are on the Race Day tab.
+      </p>
+    </section>
+  );
+}
+
 function RaceWeekChecklist({ d }: { d: Dashboard }) {
   const items = useChecklist(d.userId);
   const { seed, update } = useChecklistMutations(d.userId);
